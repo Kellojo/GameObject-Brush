@@ -72,16 +72,16 @@ namespace GameObjectBrush {
 
             //gui below the scroll view
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Add Brush")) {
+            if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection."))) {
                 AddObjectPopup.Init(brushes, this);
             }
-            if (GUILayout.Button("Remove Current Brush")) {
+            if (GUILayout.Button(new GUIContent("Remove Current Brush", "Removes the currently selected brush."))) {
                 if (currentBrush != null) {
                     brushes.Remove(currentBrush);
                     currentBrush = null;
                 }
             }
-            if (GUILayout.Button("Clear Brushes")) {
+            if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes."))) {
                 brushes.Clear();
                 currentBrush = null;
             }
@@ -89,10 +89,10 @@ namespace GameObjectBrush {
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
-            if (GUILayout.Button("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")")) {
+            if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore."))) {
                 ApplyMeshedPermanently();
             }
-            if (GUILayout.Button("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")")) {
+            if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before."))) {
                 RemoveAllSpawnedObjects();
             }
 
@@ -103,40 +103,39 @@ namespace GameObjectBrush {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Brush Details", EditorStyles.boldLabel);
 
-                if (GUILayout.Button("Copy", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
                     copy = currentBrush;
                 }
-                if (GUILayout.Button("Paste", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
                     currentBrush.PasteDetails(copy);
                 }
-                if (GUILayout.Button("Reset", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50))) {
                     currentBrush.ResetDetails();
                 }
                 EditorGUILayout.EndHorizontal();
 
-                currentBrush.density = EditorGUILayout.Slider("Density", currentBrush.density, 0f, 5f);
-                currentBrush.brushSize = EditorGUILayout.Slider("Brush Size", currentBrush.brushSize, 0f, 25f);
-                currentBrush.offsetFromPivot = EditorGUILayout.Vector3Field("Offset from Pivot", currentBrush.offsetFromPivot);
-                currentBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field("Rotational Offset", currentBrush.rotOffsetFromPivot);
+                currentBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), currentBrush.density, 0f, 5f);
+                currentBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), currentBrush.brushSize, 0f, 25f);
+                currentBrush.offsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Offset from Pivot", "Changes the offset of the spawned gameobject from the calculated position. This allows you to correct the position of the spawned objects, if you find they are floating for example due to a not that correct pivot on the gameobject/prefab."), currentBrush.offsetFromPivot);
+                currentBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Rotational Offset", "Changes the rotational offset that is applied to the prefab/gameobject when spawning it. This allows you to current the rotation of the spawned objects."), currentBrush.rotOffsetFromPivot);
 
 
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Min and Max Scale");
+                EditorGUILayout.LabelField(new GUIContent("Min and Max Scale", "The min and max range of the spawned gameobject. If they are not the same value a random value in between the min and max is going to be picked."));
                 EditorGUILayout.MinMaxSlider(ref currentBrush.minScale, ref currentBrush.maxScale, 0.001f, 50);
                 currentBrush.minScale = EditorGUILayout.FloatField(currentBrush.minScale);
                 currentBrush.maxScale = EditorGUILayout.FloatField(currentBrush.maxScale);
                 EditorGUILayout.EndHorizontal();
 
-                currentBrush.alignToSurface = EditorGUILayout.Toggle("Align to Surface", currentBrush.alignToSurface);
+                currentBrush.alignToSurface = EditorGUILayout.Toggle(new GUIContent("Align to Surface", "This option allows you to align the instantiated gameobjects to the surface you are painting on."), currentBrush.alignToSurface);
 
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeXRotation"), true);
-                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeYRotation"), true);
-                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeZRotation"), true);
+                currentBrush.randomizeXRotation = EditorGUILayout.Toggle(new GUIContent("Randomize X Rotation", "Should the rotation be randomized on the x axis?"), currentBrush.randomizeXRotation);
+                currentBrush.randomizeYRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Y Rotation", "Should the rotation be randomized on the y axis?"), currentBrush.randomizeYRotation);
+                currentBrush.randomizeZRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Z Rotation", "Should the rotation be randomized on the z axis?"), currentBrush.randomizeZRotation);
                 EditorGUILayout.EndHorizontal();
 
-                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("allowIntercollision"), true);
-
+                currentBrush.allowIntercollision = EditorGUILayout.Toggle(new GUIContent("Allow Intercollision", "Should the spawned objects be considered for the spawning of new objects? If so, newly spawned objects can be placed on top of previously (not yet applied) objects."), currentBrush.allowIntercollision);
 
 
                 EditorGUILayout.Space();
@@ -145,19 +144,19 @@ namespace GameObjectBrush {
 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
-                if (GUILayout.Button("Copy", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
                     copy = currentBrush;
                 }
-                if (GUILayout.Button("Paste", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
                     currentBrush.PasteFilters(copy);
                 }
-                if (GUILayout.Button("Reset", GUILayout.MaxWidth(50))) {
+                if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50))) {
                     currentBrush.ResetFilters();
                 }
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Min and Max Slope");
+                EditorGUILayout.LabelField(new GUIContent("Min and Max Slope", "The range of slope that is required for an object to be placed. If the slope is not in that range, no object is going to be placed."));
                 EditorGUILayout.MinMaxSlider(ref currentBrush.minSlope, ref currentBrush.maxSlope, 0, 360);
                 currentBrush.minSlope = EditorGUILayout.FloatField(currentBrush.minSlope);
                 currentBrush.maxSlope = EditorGUILayout.FloatField(currentBrush.maxSlope);
@@ -168,7 +167,7 @@ namespace GameObjectBrush {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
                 if (currentBrush.isTagFilteringEnabled) {
-                    currentBrush.tagFilter = EditorGUILayout.TagField("Tag Filter", currentBrush.tagFilter);
+                    currentBrush.tagFilter = EditorGUILayout.TagField(new GUIContent("Tag Filter", "Limits the painting to objects that have a specific tag on them."), currentBrush.tagFilter);
                 }
                 EditorGUILayout.EndHorizontal();
 
@@ -378,9 +377,9 @@ namespace GameObjectBrush {
 
         public bool allowIntercollision = false;
         public bool alignToSurface = false;
-        public bool randomizeXRotation = false;
-        public bool randomizeYRotation = true;
-        public bool randomizeZRotation = false;
+        [Tooltip("Should the rotation be randomized on the x axis?")] public bool randomizeXRotation = false;
+        [Tooltip("Should the rotation be randomized on the y axis?")] public bool randomizeYRotation = true;
+        [Tooltip("Should the rotation be randomized on the z axis?")] public bool randomizeZRotation = false;
         [Range(0, 1)] public float density = 1f;
         [Range(0, 100)] public float brushSize = 5f;
         [Range(0, 10)] public float minScale = 0.5f;
