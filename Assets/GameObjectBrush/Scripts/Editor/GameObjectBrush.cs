@@ -9,18 +9,21 @@ namespace GameObjectBrush {
     /// </summary>
     public class GameObjectBrushEditor : EditorWindow {
 
+        //version variable
+        private static string version = "v2.0";
+
         //some utility vars used to determine if the editor window is open
         public static GameObjectBrushEditor Instance { get; private set; }
         public static bool IsOpen {
             get { return Instance != null; }
         }
 
-        //custom vars that hold the brushes, the current brush, the scroll position of the scroll view and all previously spawned objects
+        //custom vars that hold the brushes, the current brush, the copied brush settings/details, the scroll position of the scroll view and all previously spawned objects
         private List<BrushObject> brushes = new List<BrushObject>();
         public BrushObject currentBrush = null;
         private List<GameObject> spawnedObjects = new List<GameObject>();
         private Vector2 scrollViewScrollPosition = new Vector2();
-
+        private BrushObject copy = null;
 
         /// <summary>
         /// Method that creates the window initially
@@ -28,7 +31,7 @@ namespace GameObjectBrush {
         [MenuItem("Tools/GameObject Brush")]
         public static void ShowWindow() {
             //Show existing window instance. If one doesn't exist, make one.
-            DontDestroyOnLoad(GetWindow<GameObjectBrushEditor>("GO Brush"));
+            DontDestroyOnLoad(GetWindow<GameObjectBrushEditor>("GO Brush " + version));
         }
 
         public void OnGUI() {
@@ -96,11 +99,25 @@ namespace GameObjectBrush {
             //don't show the details of the current brush if we do not have selected a current brush
             if (currentBrush != null && currentBrush.brushObject != null) {
                 EditorGUILayout.Space();
+
+                EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Brush Details", EditorStyles.boldLabel);
+
+                if (GUILayout.Button("Copy", GUILayout.MaxWidth(50))) {
+                    copy = currentBrush;
+                }
+                if (GUILayout.Button("Paste", GUILayout.MaxWidth(50))) {
+                    currentBrush.PasteDetails(copy);
+                }
+                if (GUILayout.Button("Reset", GUILayout.MaxWidth(50))) {
+                    currentBrush.ResetDetails();
+                }
+                EditorGUILayout.EndHorizontal();
 
                 currentBrush.density = EditorGUILayout.Slider("Density", currentBrush.density, 0f, 5f);
                 currentBrush.brushSize = EditorGUILayout.Slider("Brush Size", currentBrush.brushSize, 0f, 25f);
                 currentBrush.offsetFromPivot = EditorGUILayout.Vector3Field("Offset from Pivot", currentBrush.offsetFromPivot);
+                currentBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field("Rotational Offset", currentBrush.rotOffsetFromPivot);
 
 
                 EditorGUILayout.BeginHorizontal();
@@ -112,12 +129,47 @@ namespace GameObjectBrush {
 
                 currentBrush.alignToSurface = EditorGUILayout.Toggle("Align to Surface", currentBrush.alignToSurface);
 
-
-                EditorGUILayout.Space();
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeXRotation"), true);
                 EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeYRotation"), true);
                 EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("randomizeZRotation"), true);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("allowIntercollision"), true);
+
+
+
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
+                if (GUILayout.Button("Copy", GUILayout.MaxWidth(50))) {
+                    copy = currentBrush;
+                }
+                if (GUILayout.Button("Paste", GUILayout.MaxWidth(50))) {
+                    currentBrush.PasteFilters(copy);
+                }
+                if (GUILayout.Button("Reset", GUILayout.MaxWidth(50))) {
+                    currentBrush.ResetFilters();
+                }
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Min and Max Slope");
+                EditorGUILayout.MinMaxSlider(ref currentBrush.minSlope, ref currentBrush.maxSlope, 0, 360);
+                currentBrush.minSlope = EditorGUILayout.FloatField(currentBrush.minSlope);
+                currentBrush.maxSlope = EditorGUILayout.FloatField(currentBrush.maxSlope);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("layerFilter"), true);
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PropertyField(so.FindProperty("currentBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
+                if (currentBrush.isTagFilteringEnabled) {
+                    currentBrush.tagFilter = EditorGUILayout.TagField("Tag Filter", currentBrush.tagFilter);
+                }
                 EditorGUILayout.EndHorizontal();
 
                 EditorGUILayout.Space();
@@ -208,8 +260,24 @@ namespace GameObjectBrush {
                     ray.origin += new Vector3(Random.Range(0, currentBrush.brushSize), Random.Range(0, currentBrush.brushSize), Random.Range(0, currentBrush.brushSize));
                     RaycastHit hit;
                     if (Physics.Raycast(ray, out hit)) {
-                        //return if we are hitting an object that we have just spawned
-                        if (spawnedObjects.Contains(hit.collider.gameObject)) {
+                        //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
+                        if (spawnedObjects.Contains(hit.collider.gameObject) && !currentBrush.allowIntercollision) {
+                            continue;
+                        }
+
+                        //calculate the angle and abort if it is not in the specified range/filter
+                        float angle = Vector3.Angle(Vector3.up, hit.normal);
+                        if (angle < currentBrush.minSlope || angle > currentBrush.maxSlope) {
+                            continue;
+                        }
+
+                        //check if the layer of the hit object is in our layermask filter
+                        if (currentBrush.layerFilter != (currentBrush.layerFilter | (1 << hit.transform.gameObject.layer))) {
+                            continue;
+                        }
+
+                        //check if tag filtering is active, if so check the tags
+                        if (currentBrush.isTagFilteringEnabled && hit.transform.tag != currentBrush.tagFilter) {
                             continue;
                         }
 
@@ -229,7 +297,7 @@ namespace GameObjectBrush {
                         }
 
                         //Randomize rotation
-                        Vector3 rot = Vector3.zero;
+                        Vector3 rot = currentBrush.rotOffsetFromPivot;
                         if (currentBrush.randomizeXRotation)
                             rot.x = Random.Range(0, 360);
                         if (currentBrush.randomizeYRotation)
@@ -308,6 +376,7 @@ namespace GameObjectBrush {
     public class BrushObject {
         public GameObject brushObject;
 
+        public bool allowIntercollision = false;
         public bool alignToSurface = false;
         public bool randomizeXRotation = false;
         public bool randomizeYRotation = true;
@@ -317,9 +386,78 @@ namespace GameObjectBrush {
         [Range(0, 10)] public float minScale = 0.5f;
         [Range(0, 10)] public float maxScale = 1.5f;
         [Tooltip("The offset applied to the pivot of the brushObject. This is usefull if you find that the placed GameObjects are floating/sticking in the ground too much.")] public Vector3 offsetFromPivot = Vector3.zero;
+        [Tooltip("The offset applied to the rotation of the brushObject.")] public Vector3 rotOffsetFromPivot = Vector3.zero;
+
+
+        /* filters */
+        [Range(0, 360)] public float minSlope = 0f;
+        [Range(0, 360)] public float maxSlope = 360f;
+        public LayerMask layerFilter = ~0;
+
+        public bool isTagFilteringEnabled = false;
+        public string tagFilter = "";
+
 
         public BrushObject(GameObject obj) {
             this.brushObject = obj;
+        }
+
+        /// <summary>
+        /// Pastes the details from another brush
+        /// </summary>
+        public void PasteDetails(BrushObject brush) {
+            if (brush != null) {
+                allowIntercollision = brush.allowIntercollision;
+                alignToSurface = brush.alignToSurface;
+                randomizeXRotation = brush.randomizeXRotation;
+                randomizeYRotation = brush.randomizeYRotation;
+                randomizeZRotation = brush.randomizeZRotation;
+                density = brush.density;
+                brushSize = brush.brushSize;
+                minScale = brush.minScale;
+                maxScale = brush.maxScale;
+                offsetFromPivot = brush.offsetFromPivot;
+                rotOffsetFromPivot = brush.rotOffsetFromPivot;
+            }
+        }
+        /// <summary>
+        /// Pastes the filters from another brush
+        /// </summary>
+        public void PasteFilters(BrushObject brush) {
+            if (brush != null) {
+                minSlope = brush.minSlope;
+                maxSlope = brush.maxSlope;
+                layerFilter = brush.layerFilter;
+                isTagFilteringEnabled = brush.isTagFilteringEnabled;
+                tagFilter = brush.tagFilter;
+            }
+        }
+
+        /// <summary>
+        /// Resets the filters on this bursh
+        /// </summary>
+        public void ResetFilters() {
+            minSlope = 0f;
+            maxSlope = 360f;
+            layerFilter = ~0;
+            isTagFilteringEnabled = false;
+            tagFilter = "";
+        }
+        /// <summary>
+        /// Resets the details of this brush
+        /// </summary>
+        public void ResetDetails() {
+            allowIntercollision = false;
+            alignToSurface = false;
+            randomizeXRotation = false;
+            randomizeYRotation = true;
+            randomizeZRotation = false;
+            density = 1f;
+            brushSize = 5f;
+            minScale = 0.5f;
+            maxScale = 1.5f;
+            offsetFromPivot = Vector3.zero;
+            rotOffsetFromPivot = Vector3.zero;
         }
     }
 }
