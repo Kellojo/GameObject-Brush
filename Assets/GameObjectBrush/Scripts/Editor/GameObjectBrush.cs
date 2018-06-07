@@ -25,6 +25,14 @@ namespace GameObjectBrush {
         private Vector2 scrollViewScrollPosition = new Vector2();
         private BrushObject copy = null;
 
+        private bool isErasingEnabled = true;
+        private bool isPlacingEnabled = true;
+
+
+
+        private List<Ray> rays = new List<Ray>();
+
+
         /// <summary>
         /// Method that creates the window initially
         /// </summary>
@@ -89,6 +97,10 @@ namespace GameObjectBrush {
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            isPlacingEnabled = EditorGUILayout.Toggle(new GUIContent("Painting ebanled", "Should painting of gameobjects via left click be enabled?"), isPlacingEnabled);
+            isErasingEnabled = EditorGUILayout.Toggle(new GUIContent("Erasing ebanled", "Should erasing of gameobjects via right click be enabled?"), isErasingEnabled);
+            EditorGUILayout.EndHorizontal();
             if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore."))) {
                 ApplyMeshedPermanently();
             }
@@ -98,6 +110,8 @@ namespace GameObjectBrush {
 
             //don't show the details of the current brush if we do not have selected a current brush
             if (currentBrush != null && currentBrush.brushObject != null) {
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
                 EditorGUILayout.Space();
 
                 EditorGUILayout.BeginHorizontal();
@@ -242,6 +256,11 @@ namespace GameObjectBrush {
         /// returns true if objects were placed, false otherwise
         /// </summary>
         private bool PlaceObjects() {
+            //only paint if painting is ebanled
+            if (!isPlacingEnabled) {
+                return false;
+            }
+
             bool hasPlacedObjects = false;
 
             //loop as long as we have not reached the max ammount of objects to spawn per call/brush usage (calculated by currentBrush.density * currentBrush.brushSize)
@@ -249,6 +268,7 @@ namespace GameObjectBrush {
             if (spawnCount < 1) {
                 spawnCount = 1;
             }
+
             for (int i = 0; i < spawnCount; i++) {
 
                 //create gameobjects of the given type if possible
@@ -257,11 +277,16 @@ namespace GameObjectBrush {
                     //raycast from the scene camera to find the position of the brush and create objects there
                     Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
                     ray.origin += new Vector3(Random.Range(0, currentBrush.brushSize), Random.Range(0, currentBrush.brushSize), Random.Range(0, currentBrush.brushSize));
+                    Vector3 startPoint = ray.origin;
                     RaycastHit hit;
+
+                    rays.Add(ray);
+
                     if (Physics.Raycast(ray, out hit)) {
+
                         //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
                         if (spawnedObjects.Contains(hit.collider.gameObject) && !currentBrush.allowIntercollision) {
-                            continue;
+                                continue;
                         }
 
                         //calculate the angle and abort if it is not in the specified range/filter
@@ -310,7 +335,7 @@ namespace GameObjectBrush {
                         //randomize scale
                         float scale = Random.Range(currentBrush.minScale, currentBrush.maxScale);
                         obj.transform.localScale = new Vector3(scale, scale, scale);
-                        
+
                         //Add object to list so it can be removed later on
                         spawnedObjects.Add(obj);
                     }
@@ -324,6 +349,12 @@ namespace GameObjectBrush {
         /// It returns true if it removed something, false otherwise
         /// </summary>
         private bool RemoveObjects() {
+            //return if erasing is disabled
+            if (!isErasingEnabled) {
+                return false;
+            }
+
+
             bool hasRemovedSomething = false;
 
             //raycast to fin brush position
