@@ -17,7 +17,7 @@ namespace GameObjectBrush
 
 
         //version variable
-        private static string version = "v3.0";
+        private static string version = "v3.1";
 
         //some utility vars used to determine if the editor window is open
         public static GameObjectBrushEditor Instance { get; private set; }
