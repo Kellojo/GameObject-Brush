@@ -11,6 +11,8 @@ It has a variety of features that allow you to easily control the brush. These f
 - An align to surface mode which aligns the created gameobjects to the surface they are on
 - Randomized rotation modes for the x, y, z axis
 - Management of multiple brushes, which makes is incredibly easy to paint a variety of prefabs that are of different sizes, scales and density
+- Optional parent containter for easy management
+- Uses prefabs if available
 
 
 # Preview:

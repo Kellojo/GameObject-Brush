@@ -2,12 +2,16 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace GameObjectBrush {
+
+namespace GameObjectBrush
+{
 
     /// <summary>
     /// The main class of this extension/tool that handles the ui and the brush/paint functionality
     /// </summary>
-    public class GameObjectBrushEditor : EditorWindow {
+    [ExecuteInEditMode]
+    public class GameObjectBrushEditor : EditorWindow
+    {
 
         #region Properties
 
@@ -17,7 +21,8 @@ namespace GameObjectBrush {
 
         //some utility vars used to determine if the editor window is open
         public static GameObjectBrushEditor Instance { get; private set; }
-        public static bool IsOpen {
+        public static bool IsOpen
+        {
             get { return Instance != null; }
         }
 
@@ -33,9 +38,9 @@ namespace GameObjectBrush {
         private bool isPlacingEnabled = true;
 
         private Color red = new Color((float)186 / 256, (float)48 / 256, (float)48 / 256);
-        private Color green = new Color((float)91 / 256,(float)186 / 256, (float)48 / 256);
-        private Color lightBlue = new Color((float)60 / 256, (float)160/ 256, (float)256 / 256);
-        private Color darkBlue = new Color((float)14 / 256, (float) 36 / 256, (float) 56 / 256);
+        private Color green = new Color((float)91 / 256, (float)186 / 256, (float)48 / 256);
+        private Color lightBlue = new Color((float)60 / 256, (float)160 / 256, (float)256 / 256);
+        private Color darkBlue = new Color((float)14 / 256, (float)36 / 256, (float)56 / 256);
 
 
         #endregion
@@ -45,219 +50,257 @@ namespace GameObjectBrush {
         /// Method that creates the window initially
         /// </summary>
         [MenuItem("Tools/GameObject Brush")]
-        public static void ShowWindow() {
+        public static void ShowWindow()
+        {
             //Show existing window instance. If one doesn't exist, make one.
             DontDestroyOnLoad(GetWindow<GameObjectBrushEditor>("GO Brush " + version));
         }
 
-        void OnEnable() {
+        void OnEnable()
+        {
             SceneView.onSceneGUIDelegate += SceneGUI;
             Instance = this;
         }
-        public void OnGUI() {
-            SerializedObject so = new SerializedObject(this);
-            EditorGUIUtility.wideMode = true;
+        public void OnGUI()
+        {
+            if (!Application.isPlaying)
+            {
+                SerializedObject so = new SerializedObject(this);
+                EditorGUIUtility.wideMode = true;
 
-            if (currentBrushes != null && currentBrushes.Count > 0) {
-                EditorGUILayout.LabelField("Your Brushes (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
-            } else {
-                EditorGUILayout.LabelField("Your Brushes", EditorStyles.boldLabel);
-            }
-
-            //scroll view
-            scrollViewScrollPosition = EditorGUILayout.BeginScrollView(scrollViewScrollPosition, false, false);
-            EditorGUILayout.BeginHorizontal();
-            foreach (BrushObject brObj in brushes) {
-
-                Color guiColor = GUI.backgroundColor;
-                if (currentBrushes.Contains(brObj)) {
-                    GUI.backgroundColor = lightBlue;
-                    if (selectedBrush == brObj) {
-                        GUI.backgroundColor = darkBlue;
-                    }
+                if (currentBrushes != null && currentBrushes.Count > 0)
+                {
+                    EditorGUILayout.LabelField("Your Brushes (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
+                }
+                else
+                {
+                    EditorGUILayout.LabelField("Your Brushes", EditorStyles.boldLabel);
                 }
 
-                //Create the brush entry in the scroll view and check if the user clicked on the created button (change the currently selected/edited brush accordingly and add it to the current brushes if possible)
-                GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), "Select the " + brObj.brushObject.name + " brush");
-                if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100))) {
+                //scroll view
+                scrollViewScrollPosition = EditorGUILayout.BeginScrollView(scrollViewScrollPosition, false, false);
+                EditorGUILayout.BeginHorizontal();
+                foreach (BrushObject brObj in brushes)
+                {
 
-
-
-                    //Add and remove brushes from the current brushes list
-                    if (Event.current.control && !currentBrushes.Contains(brObj)) {
-                        currentBrushes.Add(brObj);
-                    } else if (currentBrushes.Contains(brObj)) {
-                        currentBrushes.Remove(brObj);
+                    Color guiColor = GUI.backgroundColor;
+                    if (currentBrushes.Contains(brObj))
+                    {
+                        GUI.backgroundColor = lightBlue;
+                        if (selectedBrush == brObj)
+                        {
+                            GUI.backgroundColor = darkBlue;
+                        }
                     }
 
-                    //select the currently edited brush and deselect all selected brushes
-                    if (!Event.current.control) {
-                        currentBrushes.Clear();
-                        selectedBrush = brObj;
-                        currentBrushes.Add(brObj);
+                    //Create the brush entry in the scroll view and check if the user clicked on the created button (change the currently selected/edited brush accordingly and add it to the current brushes if possible)
+                    GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), "Select the " + brObj.brushObject.name + " brush");
+                    if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100)))
+                    {
+
+
+
+                        //Add and remove brushes from the current brushes list
+                        if (Event.current.control && !currentBrushes.Contains(brObj))
+                        {
+                            currentBrushes.Add(brObj);
+                        }
+                        else if (currentBrushes.Contains(brObj))
+                        {
+                            currentBrushes.Remove(brObj);
+                        }
+
+                        //select the currently edited brush and deselect all selected brushes
+                        if (!Event.current.control)
+                        {
+                            currentBrushes.Clear();
+                            selectedBrush = brObj;
+                            currentBrushes.Add(brObj);
+                        }
+                    }
+                    GUI.backgroundColor = guiColor;
+                }
+
+                //add button
+                if (GUILayout.Button("+", GUILayout.Width(100), GUILayout.Height(100)))
+                {
+                    AddObjectPopup.Init(brushes, this);
+                }
+
+
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndScrollView();
+
+                //gui below the scroll view
+                Color guiColorBGC = GUI.backgroundColor;
+
+                EditorGUILayout.BeginHorizontal();
+
+                GUI.backgroundColor = green;
+                if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection.")))
+                {
+                    AddObjectPopup.Init(brushes, this);
+                }
+                GUI.backgroundColor = red;
+                if (GUILayout.Button(new GUIContent("Remove Current Brush(es)", "Removes the currently selected brush.")))
+                {
+                    if (currentBrushes != null)
+                    {
+                        foreach (BrushObject brush in currentBrushes)
+                        {
+                            brushes.Remove(brush);
+                        }
+                        currentBrushes = new List<BrushObject>();
                     }
                 }
-                GUI.backgroundColor = guiColor;
-            }
-
-            //add button
-            if (GUILayout.Button("+", GUILayout.Width(100), GUILayout.Height(100))) {
-                AddObjectPopup.Init(brushes, this);
-            }
-
-
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.EndScrollView();
-
-            //gui below the scroll view
-            Color guiColorBGC = GUI.backgroundColor;
-            
-            EditorGUILayout.BeginHorizontal();
-
-            GUI.backgroundColor = green;
-            if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection."))) {
-                AddObjectPopup.Init(brushes, this);
-            }
-            GUI.backgroundColor = red;
-            if (GUILayout.Button(new GUIContent("Remove Current Brush(es)", "Removes the currently selected brush."))) {
-                if (currentBrushes != null) {
-                    foreach (BrushObject brush in currentBrushes) {
-                        brushes.Remove(brush);
-                    }
+                if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes.")))
+                {
+                    brushes.Clear();
                     currentBrushes = new List<BrushObject>();
                 }
-            }
-            if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes."))) {
-                brushes.Clear();
-                currentBrushes = new List<BrushObject>();
-            }
-            EditorGUILayout.EndHorizontal();
-            GUI.backgroundColor = guiColorBGC;
+                EditorGUILayout.EndHorizontal();
+                GUI.backgroundColor = guiColorBGC;
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
-            EditorGUILayout.BeginHorizontal();
-            isPlacingEnabled = EditorGUILayout.Toggle(new GUIContent("Painting ebanled", "Should painting of gameobjects via left click be enabled?"), isPlacingEnabled);
-            isErasingEnabled = EditorGUILayout.Toggle(new GUIContent("Erasing ebanled", "Should erasing of gameobjects via right click be enabled?"), isErasingEnabled);
-            EditorGUILayout.EndHorizontal();
-
-
-
-
-
-            guiColorBGC = GUI.backgroundColor;
-            GUI.backgroundColor = green;
-            if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore."))) {
-                ApplyMeshedPermanently();
-            }
-
-            GUI.backgroundColor = red;
-            if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before."))) {
-                RemoveAllSpawnedObjects();
-            }
-            GUI.backgroundColor = guiColorBGC;
-
-            //don't show the details of the current brush if we do not have selected a current brush
-            if (currentBrushes != null && selectedBrush.brushObject != null) {
                 EditorGUILayout.Space();
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-
+                EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Brush Details", EditorStyles.boldLabel);
-
-                if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
-                    copy = selectedBrush;
-                }
-                if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
-                    selectedBrush.PasteDetails(copy);
-                }
-                if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50))) {
-                    selectedBrush.ResetDetails();
-                }
+                isPlacingEnabled = EditorGUILayout.Toggle(new GUIContent("Painting ebanled", "Should painting of gameobjects via left click be enabled?"), isPlacingEnabled);
+                isErasingEnabled = EditorGUILayout.Toggle(new GUIContent("Erasing ebanled", "Should erasing of gameobjects via right click be enabled?"), isErasingEnabled);
                 EditorGUILayout.EndHorizontal();
 
-                selectedBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), selectedBrush.density, 0f, 5f);
-                selectedBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), selectedBrush.brushSize, 0f, 25f);
-                selectedBrush.offsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Offset from Pivot", "Changes the offset of the spawned gameobject from the calculated position. This allows you to correct the position of the spawned objects, if you find they are floating for example due to a not that correct pivot on the gameobject/prefab."), selectedBrush.offsetFromPivot);
-                selectedBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Rotational Offset", "Changes the rotational offset that is applied to the prefab/gameobject when spawning it. This allows you to current the rotation of the spawned objects."), selectedBrush.rotOffsetFromPivot);
 
 
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(new GUIContent("Min and Max Scale", "The min and max range of the spawned gameobject. If they are not the same value a random value in between the min and max is going to be picked."));
-                EditorGUILayout.MinMaxSlider(ref selectedBrush.minScale, ref selectedBrush.maxScale, 0.001f, 50);
-                selectedBrush.minScale = EditorGUILayout.FloatField(selectedBrush.minScale);
-                selectedBrush.maxScale = EditorGUILayout.FloatField(selectedBrush.maxScale);
-                EditorGUILayout.EndHorizontal();
-
-                selectedBrush.alignToSurface = EditorGUILayout.Toggle(new GUIContent("Align to Surface", "This option allows you to align the instantiated gameobjects to the surface you are painting on."), selectedBrush.alignToSurface);
-
-                EditorGUILayout.BeginHorizontal();
-                selectedBrush.randomizeXRotation = EditorGUILayout.Toggle(new GUIContent("Randomize X Rotation", "Should the rotation be randomized on the x axis?"), selectedBrush.randomizeXRotation);
-                selectedBrush.randomizeYRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Y Rotation", "Should the rotation be randomized on the y axis?"), selectedBrush.randomizeYRotation);
-                selectedBrush.randomizeZRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Z Rotation", "Should the rotation be randomized on the z axis?"), selectedBrush.randomizeZRotation);
-                EditorGUILayout.EndHorizontal();
-
-                selectedBrush.allowIntercollision = EditorGUILayout.Toggle(new GUIContent("Allow Intercollision", "Should the spawned objects be considered for the spawning of new objects? If so, newly spawned objects can be placed on top of previously (not yet applied) objects."), selectedBrush.allowIntercollision);
 
 
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-
-
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
-                if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
-                    copy = selectedBrush;
+                guiColorBGC = GUI.backgroundColor;
+                GUI.backgroundColor = green;
+                if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore.")))
+                {
+                    ApplyMeshedPermanently();
                 }
-                if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
-                    selectedBrush.PasteFilters(copy);
+
+                GUI.backgroundColor = red;
+                if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")))
+                {
+                    RemoveAllSpawnedObjects();
                 }
-                if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50))) {
-                    selectedBrush.ResetFilters();
+                GUI.backgroundColor = guiColorBGC;
+
+                //don't show the details of the current brush if we do not have selected a current brush
+                if (currentBrushes != null && selectedBrush.brushObject != null)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.Space();
+                    EditorGUILayout.Space();
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Brush Details", EditorStyles.boldLabel);
+
+                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
+                    {
+                        copy = selectedBrush;
+                    }
+                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50)))
+                    {
+                        selectedBrush.PasteDetails(copy);
+                    }
+                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50)))
+                    {
+                        selectedBrush.ResetDetails();
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    selectedBrush.parentContainer = EditorGUILayout.ObjectField("Parent", selectedBrush.parentContainer, typeof(Transform), true) as Transform;
+                    selectedBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), selectedBrush.density, 0f, 5f);
+                    selectedBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), selectedBrush.brushSize, 0f, 25f);
+                    selectedBrush.offsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Offset from Pivot", "Changes the offset of the spawned gameobject from the calculated position. This allows you to correct the position of the spawned objects, if you find they are floating for example due to a not that correct pivot on the gameobject/prefab."), selectedBrush.offsetFromPivot);
+                    selectedBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Rotational Offset", "Changes the rotational offset that is applied to the prefab/gameobject when spawning it. This allows you to current the rotation of the spawned objects."), selectedBrush.rotOffsetFromPivot);
+
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(new GUIContent("Min and Max Scale", "The min and max range of the spawned gameobject. If they are not the same value a random value in between the min and max is going to be picked."));
+                    EditorGUILayout.MinMaxSlider(ref selectedBrush.minScale, ref selectedBrush.maxScale, 0.001f, 50);
+                    selectedBrush.minScale = EditorGUILayout.FloatField(selectedBrush.minScale);
+                    selectedBrush.maxScale = EditorGUILayout.FloatField(selectedBrush.maxScale);
+                    EditorGUILayout.EndHorizontal();
+
+                    selectedBrush.alignToSurface = EditorGUILayout.Toggle(new GUIContent("Align to Surface", "This option allows you to align the instantiated gameobjects to the surface you are painting on."), selectedBrush.alignToSurface);
+
+                    EditorGUILayout.BeginHorizontal();
+                    selectedBrush.randomizeXRotation = EditorGUILayout.Toggle(new GUIContent("Randomize X Rotation", "Should the rotation be randomized on the x axis?"), selectedBrush.randomizeXRotation);
+                    selectedBrush.randomizeYRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Y Rotation", "Should the rotation be randomized on the y axis?"), selectedBrush.randomizeYRotation);
+                    selectedBrush.randomizeZRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Z Rotation", "Should the rotation be randomized on the z axis?"), selectedBrush.randomizeZRotation);
+                    EditorGUILayout.EndHorizontal();
+
+                    selectedBrush.allowIntercollision = EditorGUILayout.Toggle(new GUIContent("Allow Intercollision", "Should the spawned objects be considered for the spawning of new objects? If so, newly spawned objects can be placed on top of previously (not yet applied) objects."), selectedBrush.allowIntercollision);
+
+
+                    EditorGUILayout.Space();
+                    EditorGUILayout.Space();
+
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
+                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
+                    {
+                        copy = selectedBrush;
+                    }
+                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50)))
+                    {
+                        selectedBrush.PasteFilters(copy);
+                    }
+                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50)))
+                    {
+                        selectedBrush.ResetFilters();
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(new GUIContent("Min and Max Slope", "The range of slope that is required for an object to be placed. If the slope is not in that range, no object is going to be placed."));
+                    EditorGUILayout.MinMaxSlider(ref selectedBrush.minSlope, ref selectedBrush.maxSlope, 0, 360);
+                    selectedBrush.minSlope = EditorGUILayout.FloatField(selectedBrush.minSlope);
+                    selectedBrush.maxSlope = EditorGUILayout.FloatField(selectedBrush.maxSlope);
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.PropertyField(so.FindProperty("selectedBrush").FindPropertyRelative("layerFilter"), true);
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.PropertyField(so.FindProperty("selectedBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
+                    if (selectedBrush.isTagFilteringEnabled)
+                    {
+                        selectedBrush.tagFilter = EditorGUILayout.TagField(new GUIContent("Tag Filter", "Limits the painting to objects that have a specific tag on them."), selectedBrush.tagFilter);
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.Space();
+                    EditorGUILayout.Space();
+
+                    so.ApplyModifiedProperties();
                 }
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(new GUIContent("Min and Max Slope", "The range of slope that is required for an object to be placed. If the slope is not in that range, no object is going to be placed."));
-                EditorGUILayout.MinMaxSlider(ref selectedBrush.minSlope, ref selectedBrush.maxSlope, 0, 360);
-                selectedBrush.minSlope = EditorGUILayout.FloatField(selectedBrush.minSlope);
-                selectedBrush.maxSlope = EditorGUILayout.FloatField(selectedBrush.maxSlope);
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.PropertyField(so.FindProperty("selectedBrush").FindPropertyRelative("layerFilter"), true);
-
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(so.FindProperty("selectedBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
-                if (selectedBrush.isTagFilteringEnabled) {
-                    selectedBrush.tagFilter = EditorGUILayout.TagField(new GUIContent("Tag Filter", "Limits the painting to objects that have a specific tag on them."), selectedBrush.tagFilter);
-                }
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-                EditorGUILayout.Space();
-
-                so.ApplyModifiedProperties();
             }
         }
-        public void OnDestroy() {
+        public void OnDestroy()
+        {
             SceneView.onSceneGUIDelegate -= SceneGUI;
         }
         /// <summary>
         /// Delegate that handles Scene GUI events
         /// </summary>
         /// <param name="sceneView"></param>
-        void SceneGUI(SceneView sceneView) {
+        void SceneGUI(SceneView sceneView)
+        {
 
             //don't do anything if the gameobject brush window is not open
-            if (!IsOpen) {
+            if (!IsOpen)
+            {
                 return;
             }
 
             //Draw Brush in the scene view
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
             RaycastHit hit;
-            if (currentBrushes != null && Physics.Raycast(ray, out hit)) {
+            if (isPlacingEnabled && currentBrushes != null && Physics.Raycast(ray, out hit))
+            {
                 Color color = Color.cyan;
                 color.a = 0.25f;
                 Handles.color = color;
@@ -267,31 +310,40 @@ namespace GameObjectBrush {
             }
 
             //Check for the currently selected tool
-            if (Tools.current != Tool.View) {
+            if (Tools.current != Tool.View)
+            {
                 //check if the bursh is used
-                if (Event.current.rawType == EventType.MouseDown) {
+                if (Event.current.rawType == EventType.MouseDown)
+                {
                     //check used mouse button
-                    if (Event.current.button == 0 && PlaceObjects()) {
+                    if (Event.current.button == 0 && PlaceObjects())
+                    {
                         Event.current.Use();
                         GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
                     }
                     //check used mouse button
-                    if (Event.current.button == 1) {
-                        if (RemoveObjects()) {
+                    if (Event.current.button == 1)
+                    {
+                        if (RemoveObjects())
+                        {
                             Event.current.Use();
                         }
                     }
                 }
                 //check if the bursh is used
-                if (Event.current.rawType == EventType.MouseDrag) {
+                if (Event.current.rawType == EventType.MouseDrag)
+                {
                     //check used mouse button
-                    if (Event.current.button == 0 && PlaceObjects()) {
+                    if (Event.current.button == 0 && PlaceObjects())
+                    {
                         Event.current.Use();
                         GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
                     }
                     //check used mouse button
-                    if (Event.current.button == 1) {
-                        if (RemoveObjects()) {
+                    if (Event.current.button == 1)
+                    {
+                        if (RemoveObjects())
+                        {
                             Event.current.Use();
                         }
                     }
@@ -306,26 +358,32 @@ namespace GameObjectBrush {
         /// Places the objects
         /// returns true if objects were placed, false otherwise
         /// </summary>
-        private bool PlaceObjects() {
+        private bool PlaceObjects()
+        {
             //only paint if painting is ebanled
-            if (!isPlacingEnabled) {
+            if (!isPlacingEnabled)
+            {
                 return false;
             }
 
             bool hasPlacedObjects = false;
 
-            foreach (BrushObject brush in currentBrushes) {
+            foreach (BrushObject brush in currentBrushes)
+            {
 
                 //loop as long as we have not reached the max ammount of objects to spawn per call/brush usage (calculated by currentBrush.density * currentBrush.brushSize)
                 int spawnCount = Mathf.RoundToInt(brush.density * brush.brushSize);
-                if (spawnCount < 1) {
+                if (spawnCount < 1)
+                {
                     spawnCount = 1;
                 }
 
-                for (int i = 0; i < spawnCount; i++) {
+                for (int i = 0; i < spawnCount; i++)
+                {
 
                     //create gameobjects of the given type if possible
-                    if (brush.brushObject != null && IsOpen) {
+                    if (brush.brushObject != null && IsOpen)
+                    {
 
                         //raycast from the scene camera to find the position of the brush and create objects there
                         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
@@ -333,41 +391,64 @@ namespace GameObjectBrush {
                         Vector3 startPoint = ray.origin;
                         RaycastHit hit;
 
-                        if (Physics.Raycast(ray, out hit)) {
+                        if (Physics.Raycast(ray, out hit))
+                        {
 
                             //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
-                            if (spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision) {
+                            if (spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision)
+                            {
                                 continue;
                             }
 
                             //calculate the angle and abort if it is not in the specified range/filter
                             float angle = Vector3.Angle(Vector3.up, hit.normal);
-                            if (angle < brush.minSlope || angle > brush.maxSlope) {
+                            if (angle < brush.minSlope || angle > brush.maxSlope)
+                            {
                                 continue;
                             }
 
                             //check if the layer of the hit object is in our layermask filter
-                            if (brush.layerFilter != (brush.layerFilter | (1 << hit.transform.gameObject.layer))) {
+                            if (brush.layerFilter != (brush.layerFilter | (1 << hit.transform.gameObject.layer)))
+                            {
                                 continue;
                             }
 
                             //check if tag filtering is active, if so check the tags
-                            if (brush.isTagFilteringEnabled && hit.transform.tag != brush.tagFilter) {
+                            if (brush.isTagFilteringEnabled && hit.transform.tag != brush.tagFilter)
+                            {
                                 continue;
                             }
 
                             //randomize position
                             Vector3 position = hit.point + brush.offsetFromPivot;
 
-                            //instantiate object
-                            GameObject obj = Instantiate(brush.brushObject, position, Quaternion.identity);
+                            //instantiate prefab or clone object
+                            GameObject obj;
+                            if (brush.brushObject.gameObject.scene.name != null)
+                            {
+                                obj = Instantiate(brush.brushObject, position, Quaternion.identity);
+                            }
+                            else
+                            {
+                                obj = PrefabUtility.InstantiatePrefab(brush.brushObject) as GameObject;
+                                obj.transform.position = position;
+                                obj.transform.rotation = Quaternion.identity;
+                            }
+
+                            //check for parent container
+                            if (brush.parentContainer != null)
+                            {
+                                obj.transform.parent = brush.parentContainer;
+                            }
+
                             hasPlacedObjects = true;
 
                             //register created objects to the undo stack
                             Undo.RegisterCreatedObjectUndo(obj, "Created " + obj.name + " with brush");
 
                             //check if we should align the object to the surface we are "painting" on
-                            if (brush.alignToSurface) {
+                            if (brush.alignToSurface)
+                            {
                                 obj.transform.up = hit.normal;
                             }
 
@@ -400,31 +481,38 @@ namespace GameObjectBrush {
         /// remove objects that are in the brush radius around the brush.
         /// It returns true if it removed something, false otherwise
         /// </summary>
-        private bool RemoveObjects() {
+        private bool RemoveObjects()
+        {
 
             //return if erasing is disabled
-            if (!isErasingEnabled) {
+            if (!isErasingEnabled)
+            {
                 return false;
             }
 
             bool hasRemovedSomething = false;
 
-            foreach (BrushObject brush in currentBrushes) {
+            foreach (BrushObject brush in currentBrushes)
+            {
                 //raycast to fin brush position
                 RaycastHit hit;
                 Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
                 List<GameObject> objsToRemove = new List<GameObject>();
-                if (Physics.Raycast(ray, out hit)) {
+                if (Physics.Raycast(ray, out hit))
+                {
 
                     //loop over all spawned objects to find objects thar can be removed
-                    foreach (GameObject obj in spawnedObjects) {
-                        if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize) {
+                    foreach (GameObject obj in spawnedObjects)
+                    {
+                        if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize)
+                        {
                             objsToRemove.Add(obj);
                         }
                     }
 
                     //delete the before found objects
-                    foreach (GameObject obj in objsToRemove) {
+                    foreach (GameObject obj in objsToRemove)
+                    {
                         spawnedObjects.Remove(obj);
                         DestroyImmediate(obj);
                         hasRemovedSomething = true;
@@ -439,14 +527,17 @@ namespace GameObjectBrush {
         /// <summary>
         /// Applies all currently spawned objects, so they can not be removed by the brush
         /// </summary>
-        private void ApplyMeshedPermanently() {
+        private void ApplyMeshedPermanently()
+        {
             spawnedObjects = new List<GameObject>();
         }
         /// <summary>
         /// Removes all spawned gameobjects that can be modified by the brush
         /// </summary>
-        private void RemoveAllSpawnedObjects() {
-            foreach (GameObject obj in spawnedObjects) {
+        private void RemoveAllSpawnedObjects()
+        {
+            foreach (GameObject obj in spawnedObjects)
+            {
                 DestroyImmediate(obj);
             }
             spawnedObjects.Clear();
@@ -462,10 +553,13 @@ namespace GameObjectBrush {
         /// Iterates over the list of current brushes and adds the name of each brush to a string.
         /// </summary>
         /// <returns></returns>
-        private string GetCurrentBrushesString() {
+        private string GetCurrentBrushesString()
+        {
             string brushes = "";
-            foreach (BrushObject brush in currentBrushes) {
-                if (brushes != "") {
+            foreach (BrushObject brush in currentBrushes)
+            {
+                if (brushes != "")
+                {
                     brushes += " ,";
                 }
                 brushes += brush.brushObject.name;
@@ -476,17 +570,20 @@ namespace GameObjectBrush {
         /// Get the greatest brush size value from the current brushes list
         /// </summary>
         /// <returns></returns>
-        private float GetMaximumBrushSizeFromCurrentBrushes() {
+        private float GetMaximumBrushSizeFromCurrentBrushes()
+        {
             float maxBrushSize = 0f;
-            foreach (BrushObject brush in currentBrushes) {
-                if (brush.brushSize > maxBrushSize) {
+            foreach (BrushObject brush in currentBrushes)
+            {
+                if (brush.brushSize > maxBrushSize)
+                {
                     maxBrushSize = brush.brushSize;
                 }
             }
             return maxBrushSize;
         }
-        
-        
+
+
         #endregion
     }
 
@@ -495,14 +592,18 @@ namespace GameObjectBrush {
     /// Class that is responsible for holding information about a brush, such as the prefab/gameobject, size, density, etc.
     /// </summary>
     [System.Serializable]
-    public class BrushObject {
+    public class BrushObject
+    {
         public GameObject brushObject;
 
+        [Tooltip("Use prefab instantiation instead of cloning.")] public bool usePrefabs = true;
         public bool allowIntercollision = false;
         public bool alignToSurface = false;
         [Tooltip("Should the rotation be randomized on the x axis?")] public bool randomizeXRotation = false;
         [Tooltip("Should the rotation be randomized on the y axis?")] public bool randomizeYRotation = true;
         [Tooltip("Should the rotation be randomized on the z axis?")] public bool randomizeZRotation = false;
+
+        public Transform parentContainer;
         [Range(0, 1)] public float density = 1f;
         [Range(0, 100)] public float brushSize = 5f;
         [Range(0, 10)] public float minScale = 0.5f;
@@ -520,15 +621,18 @@ namespace GameObjectBrush {
         public string tagFilter = "";
 
 
-        public BrushObject(GameObject obj) {
+        public BrushObject(GameObject obj)
+        {
             this.brushObject = obj;
         }
 
         /// <summary>
         /// Pastes the details from another brush
         /// </summary>
-        public void PasteDetails(BrushObject brush) {
-            if (brush != null) {
+        public void PasteDetails(BrushObject brush)
+        {
+            if (brush != null)
+            {
                 allowIntercollision = brush.allowIntercollision;
                 alignToSurface = brush.alignToSurface;
                 randomizeXRotation = brush.randomizeXRotation;
@@ -545,8 +649,10 @@ namespace GameObjectBrush {
         /// <summary>
         /// Pastes the filters from another brush
         /// </summary>
-        public void PasteFilters(BrushObject brush) {
-            if (brush != null) {
+        public void PasteFilters(BrushObject brush)
+        {
+            if (brush != null)
+            {
                 minSlope = brush.minSlope;
                 maxSlope = brush.maxSlope;
                 layerFilter = brush.layerFilter;
@@ -558,7 +664,8 @@ namespace GameObjectBrush {
         /// <summary>
         /// Resets the filters on this bursh
         /// </summary>
-        public void ResetFilters() {
+        public void ResetFilters()
+        {
             minSlope = 0f;
             maxSlope = 360f;
             layerFilter = ~0;
@@ -568,7 +675,8 @@ namespace GameObjectBrush {
         /// <summary>
         /// Resets the details of this brush
         /// </summary>
-        public void ResetDetails() {
+        public void ResetDetails()
+        {
             allowIntercollision = false;
             alignToSurface = false;
             randomizeXRotation = false;
