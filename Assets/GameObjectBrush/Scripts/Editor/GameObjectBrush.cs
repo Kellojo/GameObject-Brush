@@ -20,6 +20,7 @@ namespace GameObjectBrush {
         //colors
         public static Color red = ColorFromRGB(239, 80, 80);
         public static Color green = ColorFromRGB(93, 173, 57);
+        public static Color yellow = ColorFromRGB(237, 199, 61);
         public static Color lightBlue = ColorFromRGB(60, 160, 256);
         public static Color darkBlue = ColorFromRGB(14, 36, 56);
 
@@ -239,16 +240,18 @@ namespace GameObjectBrush {
                     EditorGUILayout.Space();
 
                     EditorGUILayout.BeginHorizontal();
+                    GUI.backgroundColor = yellow;
                     EditorGUILayout.LabelField("Brush Details" + " - (" + selectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
                     if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
                     {
                         copy = selectedBrush;
                     }
-                    EditorGUI.BeginDisabledGroup(copy != null);
+                    EditorGUI.BeginDisabledGroup(copy == null);
                     if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.PasteDetails(copy);
                     }
+                    GUI.backgroundColor = guiColorBGC;
                     EditorGUI.EndDisabledGroup();
                     if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50)))
                     {
@@ -285,18 +288,20 @@ namespace GameObjectBrush {
                     EditorGUILayout.Space();
 
 
+                    GUI.backgroundColor = yellow;
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Filters" + " - (" + selectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
                     if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
                     {
                         copy = selectedBrush;
                     }
-                    EditorGUI.BeginDisabledGroup(copy != null);
+                    EditorGUI.BeginDisabledGroup(copy == null);
                     if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.PasteFilters(copy);
                     }
                     EditorGUI.EndDisabledGroup();
+                    GUI.backgroundColor = guiColorBGC;
                     if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.ResetFilters();
@@ -599,6 +604,7 @@ namespace GameObjectBrush {
             brushes.Clear();
             selectedBrush = null;
             currentBrushes = new List<BrushObject>();
+            copy = null;
         }
 
         #endregion
