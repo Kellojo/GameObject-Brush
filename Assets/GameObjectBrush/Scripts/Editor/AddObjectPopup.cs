@@ -9,26 +9,38 @@ namespace GameObjectBrush {
     /// </summary>
     public class AddObjectPopup : EditorWindow {
 
+        private static string windowName = "Add brush";
+
         private GameObject obj2Add;
         public List<BrushObject> brushes;
         public EditorWindow parent;
 
+        public static AddObjectPopup instance;
+
         //initialize the popup window
         public static void Init(List<BrushObject> brushes, EditorWindow parent) {
+            //check if a window is already open
+            if (instance != null) {
+                return;
+            }
+
+
             //create window
-            AddObjectPopup window = ScriptableObject.CreateInstance<AddObjectPopup>();
+            instance = ScriptableObject.CreateInstance<AddObjectPopup>();
 
             //cache the brushes from the main editor window for later use
-            window.brushes = brushes;
+            instance.brushes = brushes;
             //cache the reference to the parent for later repaint
-            window.parent = parent;
+            instance.parent = parent;
 
             //calculate window position (center of the parent window)
             float x = parent.position.x + (parent.position.width - 350) * 0.5f;
             float y = parent.position.y + (parent.position.height - 75) * 0.5f;
-            window.position = new Rect(x, y, 350, 75);
+            instance.position = new Rect(x, y, 350, 75);
 
-            window.ShowPopup();
+            //show window as "utility"
+            instance.ShowUtility();
+            instance.name = windowName;
         }
 
         /// <summary>
@@ -46,7 +58,14 @@ namespace GameObjectBrush {
             EditorGUILayout.Space();
             EditorGUILayout.BeginHorizontal();
 
+            //close the popup
+            GUI.backgroundColor = GameObjectBrushEditor.red;
+            if (GUILayout.Button("Cancel")) {
+                this.Close();
+            }
+
             //Adds the gameobject to the brushes from the main window and closes the popup
+            GUI.backgroundColor = GameObjectBrushEditor.green;
             if (GUILayout.Button("Add")) {
                 if (obj2Add != null) {
                     brushes.Add(new BrushObject(obj2Add));
@@ -54,12 +73,14 @@ namespace GameObjectBrush {
                 }
                 this.Close();
             }
-            //close the popup
-            if (GUILayout.Button("Cancel")) {
-                this.Close();
-            }
 
             EditorGUILayout.EndHorizontal();
+        }
+
+        private void OnDestroy() {
+            if (instance == this) {
+                instance = null; //set instance to null
+            }
         }
     }
 }
