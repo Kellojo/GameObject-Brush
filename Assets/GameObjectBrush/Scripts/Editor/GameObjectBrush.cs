@@ -21,8 +21,8 @@ namespace GameObjectBrush {
         public static Color red = ColorFromRGB(239, 80, 80);
         public static Color green = ColorFromRGB(93, 173, 57);
         public static Color yellow = ColorFromRGB(237, 199, 61);
-        public static Color lightBlue = ColorFromRGB(60, 160, 256);
-        public static Color darkBlue = ColorFromRGB(14, 36, 56);
+        public static Color SelectedColor = ColorFromRGB(139, 150, 165);
+        public static Color PrimarySelectedColor = ColorFromRGB(10, 153, 220);
 
         //some utility vars used to determine if the editor window is open
         public static GameObjectBrushEditor Instance { get; private set; }
@@ -101,14 +101,14 @@ namespace GameObjectBrush {
                         EditorGUILayout.BeginHorizontal();
                     }
 
-
+                    //change color
                     Color guiColor = GUI.backgroundColor;
                     if (currentBrushes.Contains(brObj))
                     {
-                        GUI.backgroundColor = lightBlue;
+                        GUI.backgroundColor = SelectedColor;
                         if (selectedBrush == brObj)
                         {
-                            GUI.backgroundColor = darkBlue;
+                            GUI.backgroundColor = PrimarySelectedColor;
                         }
                     }
 
