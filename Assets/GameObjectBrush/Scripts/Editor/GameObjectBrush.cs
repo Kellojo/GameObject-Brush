@@ -32,9 +32,9 @@ namespace GameObjectBrush {
         }
 
         //custom vars that hold the brushes, the current brush, the copied brush settings/details, the scroll position of the scroll view and all previously spawned objects
-        private BrushList brushes;
+        public BrushList brushes;
         public List<BrushObject> currentBrushes = new List<BrushObject>();
-        private int viewIndex = 1;
+        public string activeBrushList = "DefaultBrushSet";
 
         public BrushObject selectedBrush = null;                                    //The currently selected/viewes brush (has to be public in order to be accessed by the FindProperty method)
         private List<GameObject> spawnedObjects = new List<GameObject>();
@@ -59,9 +59,10 @@ namespace GameObjectBrush {
 
         void OnEnable()
         {
-            if (EditorPrefs.HasKey("ObjectPath"))
+            if (EditorPrefs.HasKey(activeBrushList))
             {
-                string objectPath = EditorPrefs.GetString("ObjectPath");
+                Debug.Log(EditorPrefs.GetString(activeBrushList));
+                string objectPath = EditorPrefs.GetString(activeBrushList);
                 brushes = AssetDatabase.LoadAssetAtPath(objectPath, typeof(BrushList)) as BrushList;
             }
             if (brushes == null || brushes.brushList == null)
@@ -97,6 +98,9 @@ namespace GameObjectBrush {
                     }
 
                 }
+
+                brushes = EditorGUILayout.ObjectField(brushes, typeof(Object), true) as BrushList;
+
                 if (currentBrushes != null && currentBrushes.Count > 0)
                 {
                     EditorGUILayout.LabelField("Your Brushes - (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
@@ -689,13 +693,12 @@ namespace GameObjectBrush {
             // There is no overwrite protection here!
             // There is No "Are you sure you want to overwrite your existing object?" if it exists.
             // This should probably get a string from the user to create a new name and pass it ...
-            viewIndex = 1;
             brushes = CreateBrushList.Create();
             if (brushes)
             {
                 brushes.brushList = new List<BrushObject>();
                 string relPath = AssetDatabase.GetAssetPath(brushes);
-                EditorPrefs.SetString("ObjectPath", relPath);
+                EditorPrefs.SetString(activeBrushList, relPath);
             }
         }
 
@@ -710,7 +713,7 @@ namespace GameObjectBrush {
                     brushes.brushList = new List<BrushObject>();
                 if (brushes)
                 {
-                    EditorPrefs.SetString("ObjectPath", relPath);
+                    EditorPrefs.SetString(activeBrushList, relPath);
                 }
             }
         }
