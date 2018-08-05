@@ -3,8 +3,7 @@ using UnityEngine;
 using UnityEditor;
 
 
-namespace GameObjectBrush
-{
+namespace GameObjectBrush {
 
     /// <summary>
     /// The main class of this extension/tool that handles the ui and the brush/paint functionality
@@ -15,9 +14,15 @@ namespace GameObjectBrush
 
         #region Properties
 
-
         //version variable
-        private static string version = "v3.0";
+        private static string version = "v3.1";
+
+        //colors
+        public static Color red = ColorFromRGB(239, 80, 80);
+        public static Color green = ColorFromRGB(93, 173, 57);
+        public static Color yellow = ColorFromRGB(237, 199, 61);
+        public static Color SelectedColor = ColorFromRGB(139, 150, 165);
+        public static Color PrimarySelectedColor = ColorFromRGB(10, 153, 220);
 
         //some utility vars used to determine if the editor window is open
         public static GameObjectBrushEditor Instance { get; private set; }
@@ -37,12 +42,6 @@ namespace GameObjectBrush
         private bool isErasingEnabled = true;
         private bool isPlacingEnabled = true;
 
-        private Color red = new Color((float)186 / 256, (float)48 / 256, (float)48 / 256);
-        private Color green = new Color((float)91 / 256, (float)186 / 256, (float)48 / 256);
-        private Color lightBlue = new Color((float)60 / 256, (float)160 / 256, (float)256 / 256);
-        private Color darkBlue = new Color((float)14 / 256, (float)36 / 256, (float)56 / 256);
-
-
         #endregion
 
 
@@ -60,14 +59,9 @@ namespace GameObjectBrush
         {
             SceneView.onSceneGUIDelegate += SceneGUI;
             Instance = this;
-            //var data = EditorPrefs.GetString("GameObjectBrushEditor", JsonUtility.ToJson(this, false));
-            //JsonUtility.FromJsonOverwrite(data, Instance);
-            //Debug.Log(data);
-        }
-        void OnDisable()
-        {
-            //var data = JsonUtility.ToJson(this, false);
-            //EditorPrefs.SetString("GameObjectBrushEditor", data);
+
+            this.autoRepaintOnSceneChange = true;
+
         }
 
         public void OnGUI()
@@ -77,33 +71,51 @@ namespace GameObjectBrush
                 SerializedObject so = new SerializedObject(this);
                 EditorGUIUtility.wideMode = true;
 
+                #region Header
                 if (currentBrushes != null && currentBrushes.Count > 0)
                 {
-                    EditorGUILayout.LabelField("Your Brushes (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField("Your Brushes - (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
                 }
                 else
                 {
                     EditorGUILayout.LabelField("Your Brushes", EditorStyles.boldLabel);
                 }
+                #endregion
 
+                #region Scroll view 
                 //scroll view
                 scrollViewScrollPosition = EditorGUILayout.BeginScrollView(scrollViewScrollPosition, false, false);
-                EditorGUILayout.BeginHorizontal();
+                int rowLength = 1;
+                int maxRowLength = Mathf.FloorToInt((this.position.width - 35) / 100);
+                if (maxRowLength < 1) {
+                    maxRowLength = 1;
+                }
+
                 foreach (BrushObject brObj in brushes)
                 {
+                    //check if row is longer than max row length
+                    if (rowLength > maxRowLength) {
+                        rowLength = 1;
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    //begin row if rowLength == 1
+                    if (rowLength == 1) {
+                        EditorGUILayout.BeginHorizontal();
+                    }
 
+                    //change color
                     Color guiColor = GUI.backgroundColor;
                     if (currentBrushes.Contains(brObj))
                     {
-                        GUI.backgroundColor = lightBlue;
+                        GUI.backgroundColor = SelectedColor;
                         if (selectedBrush == brObj)
                         {
-                            GUI.backgroundColor = darkBlue;
+                            GUI.backgroundColor = PrimarySelectedColor;
                         }
                     }
 
                     //Create the brush entry in the scroll view and check if the user clicked on the created button (change the currently selected/edited brush accordingly and add it to the current brushes if possible)
-                    GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), "Select the " + brObj.brushObject.name + " brush");
+                    GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), brObj.brushObject.name);
                     if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100)))
                     {
 
@@ -127,7 +139,19 @@ namespace GameObjectBrush
                             currentBrushes.Add(brObj);
                         }
                     }
+
                     GUI.backgroundColor = guiColor;
+                    rowLength++;
+                }
+
+                //check if row is longer than max row length
+                if (rowLength > maxRowLength) {
+                    rowLength = 1;
+                    EditorGUILayout.EndHorizontal();
+                }
+                //begin row if rowLength == 1
+                if (rowLength == 1) {
+                    EditorGUILayout.BeginHorizontal();
                 }
 
                 //add button
@@ -135,14 +159,16 @@ namespace GameObjectBrush
                 {
                     AddObjectPopup.Init(brushes, this);
                 }
+                Color guiColorBGC = GUI.backgroundColor;
 
-
+                //end horizontal and scroll view again
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.EndScrollView();
 
-                //gui below the scroll view
-                Color guiColorBGC = GUI.backgroundColor;
+                #endregion
 
+                #region Actions Group
+                //gui below the scroll view
                 EditorGUILayout.BeginHorizontal();
 
                 GUI.backgroundColor = green;
@@ -150,7 +176,10 @@ namespace GameObjectBrush
                 {
                     AddObjectPopup.Init(brushes, this);
                 }
+
+                EditorGUI.BeginDisabledGroup(currentBrushes.Count == 0 || selectedBrush == null);
                 GUI.backgroundColor = red;
+                //remove selected brushes button
                 if (GUILayout.Button(new GUIContent("Remove Current Brush(es)", "Removes the currently selected brush.")))
                 {
                     if (currentBrushes != null)
@@ -162,11 +191,15 @@ namespace GameObjectBrush
                         currentBrushes = new List<BrushObject>();
                     }
                 }
+                EditorGUI.EndDisabledGroup();
+                //remove all brushes button
+                EditorGUI.BeginDisabledGroup(brushes.Count == 0);
                 if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes.")))
                 {
-                    brushes.Clear();
-                    currentBrushes = new List<BrushObject>();
+                    RemoveAllBrushes();
                 }
+                EditorGUI.EndDisabledGroup();
+
                 EditorGUILayout.EndHorizontal();
                 GUI.backgroundColor = guiColorBGC;
 
@@ -176,43 +209,52 @@ namespace GameObjectBrush
                 isPlacingEnabled = EditorGUILayout.Toggle(new GUIContent("Painting ebanled", "Should painting of gameobjects via left click be enabled?"), isPlacingEnabled);
                 isErasingEnabled = EditorGUILayout.Toggle(new GUIContent("Erasing ebanled", "Should erasing of gameobjects via right click be enabled?"), isErasingEnabled);
                 EditorGUILayout.EndHorizontal();
-
-
-
-
-
                 guiColorBGC = GUI.backgroundColor;
+
+
+                EditorGUI.BeginDisabledGroup(spawnedObjects.Count == 0);
                 GUI.backgroundColor = green;
                 if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore.")))
                 {
-                    ApplyMeshedPermanently();
+                    ApplyCachedObjects();
                 }
+
 
                 GUI.backgroundColor = red;
                 if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")))
                 {
                     RemoveAllSpawnedObjects();
                 }
+                EditorGUI.EndDisabledGroup();
+
+
+
                 GUI.backgroundColor = guiColorBGC;
 
+                #endregion
+
+                #region Brush Details
                 //don't show the details of the current brush if we do not have selected a current brush
-                if (currentBrushes != null && selectedBrush.brushObject != null)
+                if (currentBrushes != null && selectedBrush != null && brushes.Count > 0 && currentBrushes.Count > 0)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.Space();
                     EditorGUILayout.Space();
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Brush Details", EditorStyles.boldLabel);
-
+                    GUI.backgroundColor = yellow;
+                    EditorGUILayout.LabelField("Brush Details" + " - (" + selectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
                     if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
                     {
                         copy = selectedBrush;
                     }
+                    EditorGUI.BeginDisabledGroup(copy == null);
                     if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.PasteDetails(copy);
                     }
+                    GUI.backgroundColor = guiColorBGC;
+                    EditorGUI.EndDisabledGroup();
                     if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.ResetDetails();
@@ -248,16 +290,20 @@ namespace GameObjectBrush
                     EditorGUILayout.Space();
 
 
+                    GUI.backgroundColor = yellow;
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField("Filters" + " - (" + selectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
                     if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
                     {
                         copy = selectedBrush;
                     }
+                    EditorGUI.BeginDisabledGroup(copy == null);
                     if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.PasteFilters(copy);
                     }
+                    EditorGUI.EndDisabledGroup();
+                    GUI.backgroundColor = guiColorBGC;
                     if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50)))
                     {
                         selectedBrush.ResetFilters();
@@ -286,6 +332,7 @@ namespace GameObjectBrush
 
                     so.ApplyModifiedProperties();
                 }
+                #endregion
             }
         }
         public void OnDestroy()
@@ -536,7 +583,7 @@ namespace GameObjectBrush
         /// <summary>
         /// Applies all currently spawned objects, so they can not be removed by the brush
         /// </summary>
-        private void ApplyMeshedPermanently()
+        private void ApplyCachedObjects()
         {
             spawnedObjects = new List<GameObject>();
         }
@@ -552,6 +599,15 @@ namespace GameObjectBrush
             spawnedObjects.Clear();
         }
 
+        /// <summary>
+        /// Removes all brushes, resets the currently selected brushes etc.
+        /// </summary>
+        private void RemoveAllBrushes() {
+            brushes.Clear();
+            selectedBrush = null;
+            currentBrushes = new List<BrushObject>();
+            copy = null;
+        }
 
         #endregion
 
@@ -591,7 +647,16 @@ namespace GameObjectBrush
             }
             return maxBrushSize;
         }
-
+        /// <summary>
+        /// Generates a Color object by r g b values (Range 0, 256)
+        /// </summary>
+        /// <param name="r"></param>
+        /// <param name="g"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static Color ColorFromRGB(int r, int g, int b) {
+            return new Color((float)r / 256, (float)g / 256, (float)b / 256);
+        }
 
         #endregion
     }

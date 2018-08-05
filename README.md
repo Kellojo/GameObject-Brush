@@ -17,4 +17,4 @@ It has a variety of features that allow you to easily control the brush. These f
 
 # Preview:
 
-![alt text](https://i.imgur.com/i3CxCL1.jpg "The GameObject brush main window")
+![alt text](https://i.imgur.com/zhRIMtp.png "The GameObject brush main window")
