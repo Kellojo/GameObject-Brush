@@ -32,8 +32,10 @@ namespace GameObjectBrush {
         }
 
         //custom vars that hold the brushes, the current brush, the copied brush settings/details, the scroll position of the scroll view and all previously spawned objects
-        private List<BrushObject> brushes = new List<BrushObject>();
+        private BrushList brushes;
         public List<BrushObject> currentBrushes = new List<BrushObject>();
+        private int viewIndex = 1;
+
         public BrushObject selectedBrush = null;                                    //The currently selected/viewes brush (has to be public in order to be accessed by the FindProperty method)
         private List<GameObject> spawnedObjects = new List<GameObject>();
         private Vector2 scrollViewScrollPosition = new Vector2();
@@ -57,6 +59,16 @@ namespace GameObjectBrush {
 
         void OnEnable()
         {
+            if (EditorPrefs.HasKey("ObjectPath"))
+            {
+                string objectPath = EditorPrefs.GetString("ObjectPath");
+                brushes = AssetDatabase.LoadAssetAtPath(objectPath, typeof(BrushList)) as BrushList;
+            }
+            if (brushes == null || brushes.brushList == null)
+            {
+                CreateNewBrushList();
+            }
+
             SceneView.onSceneGUIDelegate += SceneGUI;
             Instance = this;
 
@@ -66,12 +78,25 @@ namespace GameObjectBrush {
 
         public void OnGUI()
         {
+            
             if (!Application.isPlaying)
             {
                 SerializedObject so = new SerializedObject(this);
                 EditorGUIUtility.wideMode = true;
 
                 #region Header
+
+                //select first object by default;
+                if (brushes != null && brushes.brushList.Count > 0)
+                {
+                    if(currentBrushes == null || currentBrushes.Count < 1)
+                    {
+                        currentBrushes = new List<BrushObject>();
+                        currentBrushes.Add(brushes.brushList[0]);
+                        selectedBrush = currentBrushes[0];
+                    }
+
+                }
                 if (currentBrushes != null && currentBrushes.Count > 0)
                 {
                     EditorGUILayout.LabelField("Your Brushes - (Current: " + GetCurrentBrushesString() + ")", EditorStyles.boldLabel);
@@ -80,6 +105,7 @@ namespace GameObjectBrush {
                 {
                     EditorGUILayout.LabelField("Your Brushes", EditorStyles.boldLabel);
                 }
+
                 #endregion
 
                 #region Scroll view 
@@ -91,7 +117,7 @@ namespace GameObjectBrush {
                     maxRowLength = 1;
                 }
 
-                foreach (BrushObject brObj in brushes)
+                foreach (BrushObject brObj in brushes.brushList)
                 {
                     //check if row is longer than max row length
                     if (rowLength > maxRowLength) {
@@ -157,7 +183,7 @@ namespace GameObjectBrush {
                 //add button
                 if (GUILayout.Button("+", GUILayout.Width(100), GUILayout.Height(100)))
                 {
-                    AddObjectPopup.Init(brushes, this);
+                    AddObjectPopup.Init(brushes.brushList, this);
                 }
                 Color guiColorBGC = GUI.backgroundColor;
 
@@ -174,7 +200,7 @@ namespace GameObjectBrush {
                 GUI.backgroundColor = green;
                 if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection.")))
                 {
-                    AddObjectPopup.Init(brushes, this);
+                    AddObjectPopup.Init(brushes.brushList, this);
                 }
 
                 EditorGUI.BeginDisabledGroup(currentBrushes.Count == 0 || selectedBrush == null);
@@ -186,14 +212,14 @@ namespace GameObjectBrush {
                     {
                         foreach (BrushObject brush in currentBrushes)
                         {
-                            brushes.Remove(brush);
+                            brushes.brushList.Remove(brush);
                         }
                         currentBrushes = new List<BrushObject>();
                     }
                 }
                 EditorGUI.EndDisabledGroup();
                 //remove all brushes button
-                EditorGUI.BeginDisabledGroup(brushes.Count == 0);
+                EditorGUI.BeginDisabledGroup(brushes.brushList.Count == 0);
                 if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes.")))
                 {
                     RemoveAllBrushes();
@@ -235,7 +261,7 @@ namespace GameObjectBrush {
 
                 #region Brush Details
                 //don't show the details of the current brush if we do not have selected a current brush
-                if (currentBrushes != null && selectedBrush != null && brushes.Count > 0 && currentBrushes.Count > 0)
+                if (currentBrushes != null && selectedBrush != null && brushes.brushList.Count > 0 && currentBrushes.Count > 0)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.Space();
@@ -603,7 +629,7 @@ namespace GameObjectBrush {
         /// Removes all brushes, resets the currently selected brushes etc.
         /// </summary>
         private void RemoveAllBrushes() {
-            brushes.Clear();
+            brushes.brushList.Clear();
             selectedBrush = null;
             currentBrushes = new List<BrushObject>();
             copy = null;
@@ -656,6 +682,37 @@ namespace GameObjectBrush {
         /// <returns></returns>
         public static Color ColorFromRGB(int r, int g, int b) {
             return new Color((float)r / 256, (float)g / 256, (float)b / 256);
+        }
+
+        void CreateNewBrushList()
+        {
+            // There is no overwrite protection here!
+            // There is No "Are you sure you want to overwrite your existing object?" if it exists.
+            // This should probably get a string from the user to create a new name and pass it ...
+            viewIndex = 1;
+            brushes = CreateBrushList.Create();
+            if (brushes)
+            {
+                brushes.brushList = new List<BrushObject>();
+                string relPath = AssetDatabase.GetAssetPath(brushes);
+                EditorPrefs.SetString("ObjectPath", relPath);
+            }
+        }
+
+        void OpenBrushList()
+        {
+            string absPath = EditorUtility.OpenFilePanel("Select Brush List", "", "");
+            if (absPath.StartsWith(Application.dataPath))
+            {
+                string relPath = absPath.Substring(Application.dataPath.Length - "Assets".Length);
+                brushes = AssetDatabase.LoadAssetAtPath(relPath, typeof(BrushList)) as BrushList;
+                if (brushes.brushList == null)
+                    brushes.brushList = new List<BrushObject>();
+                if (brushes)
+                {
+                    EditorPrefs.SetString("ObjectPath", relPath);
+                }
+            }
         }
 
         #endregion

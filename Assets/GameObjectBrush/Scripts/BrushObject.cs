@@ -5,7 +5,6 @@ using UnityEditor;
 namespace GameObjectBrush
 {
 
-
     /// <summary>
     /// Class that is responsible for holding information about a brush, such as the prefab/gameobject, size, density, etc.
     /// </summary>
