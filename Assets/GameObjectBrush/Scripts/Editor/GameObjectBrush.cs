@@ -145,9 +145,6 @@ namespace GameObjectBrush {
                     GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), brObj.brushObject.name);
                     if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100)))
                     {
-
-
-
                         //Add and remove brushes from the current brushes list
                         if (Event.current.control && !currentBrushes.Contains(brObj))
                         {
@@ -165,6 +162,8 @@ namespace GameObjectBrush {
                             selectedBrush = brObj;
                             currentBrushes.Add(brObj);
                         }
+                        //update asset on list change
+                        EditorUtility.SetDirty(brushes);
                     }
 
                     GUI.backgroundColor = guiColor;
