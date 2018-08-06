@@ -371,6 +371,7 @@ namespace GameObjectBrush {
         }
         public void OnDestroy()
         {
+            EditorUtility.SetDirty(brushes);
             SceneView.onSceneGUIDelegate -= SceneGUI;
         }
         /// <summary>
