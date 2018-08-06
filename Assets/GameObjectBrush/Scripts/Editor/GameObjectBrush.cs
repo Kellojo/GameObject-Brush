@@ -61,7 +61,6 @@ namespace GameObjectBrush {
         {
             if (EditorPrefs.HasKey(activeBrushList))
             {
-                Debug.Log(EditorPrefs.GetString(activeBrushList));
                 string objectPath = EditorPrefs.GetString(activeBrushList);
                 brushes = AssetDatabase.LoadAssetAtPath(objectPath, typeof(BrushList)) as BrushList;
             }
