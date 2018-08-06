@@ -8,7 +8,7 @@ namespace GameObjectBrush {
     /// <summary>
     /// The main class of this extension/tool that handles the ui and the brush/paint functionality
     /// </summary>
-    [ExecuteInEditMode]
+    [InitializeOnLoad]
     public class GameObjectBrushEditor : EditorWindow
     {
 
@@ -54,7 +54,7 @@ namespace GameObjectBrush {
         public static void ShowWindow()
         {
             //Show existing window instance. If one doesn't exist, make one.
-            DontDestroyOnLoad(GetWindow<GameObjectBrushEditor>("GO Brush " + version));
+           DontDestroyOnLoad(EditorWindow.GetWindow<GameObjectBrushEditor>("GO Brush " + version));
         }
 
         void OnEnable()
@@ -162,8 +162,6 @@ namespace GameObjectBrush {
                             selectedBrush = brObj;
                             currentBrushes.Add(brObj);
                         }
-                        //update asset on list change
-                        EditorUtility.SetDirty(brushes);
                     }
 
                     GUI.backgroundColor = guiColor;
@@ -365,12 +363,18 @@ namespace GameObjectBrush {
 
                     so.ApplyModifiedProperties();
                 }
+
+                //save AssetDatabase on any change
+                if (GUI.changed)
+                {
+                    UpdateBrushList();
+                }
                 #endregion
             }
         }
         public void OnDestroy()
         {
-            EditorUtility.SetDirty(brushes);
+            UpdateBrushList();
             SceneView.onSceneGUIDelegate -= SceneGUI;
         }
         /// <summary>
@@ -692,11 +696,20 @@ namespace GameObjectBrush {
             return new Color((float)r / 256, (float)g / 256, (float)b / 256);
         }
 
+        /// <summary>
+        /// Saves BrushList to AssetDatabase
+        /// </summary>
+        void UpdateBrushList()
+        {
+            EditorUtility.SetDirty(brushes);
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// Creates a new BrushList.asset and links to it.
+        /// </summary>
         void CreateNewBrushList()
         {
-            // There is no overwrite protection here!
-            // There is No "Are you sure you want to overwrite your existing object?" if it exists.
-            // This should probably get a string from the user to create a new name and pass it ...
             brushes = CreateBrushList.Create();
             if (brushes)
             {
@@ -706,6 +719,9 @@ namespace GameObjectBrush {
             }
         }
 
+        /// <summary>
+        /// Opens a system window dialog to choose a BrushList.assset
+        /// </summary>
         void OpenBrushList()
         {
             string absPath = EditorUtility.OpenFilePanel("Select Brush List", "", "");
