@@ -37,7 +37,7 @@ namespace GameObjectBrush {
         public string activeBrushList = "DefaultBrushSet";
 
         public BrushObject selectedBrush = null;                                    //The currently selected/viewes brush (has to be public in order to be accessed by the FindProperty method)
-        private List<GameObject> spawnedObjects = new List<GameObject>();
+        //private List<GameObject> spawnedObjects = new List<GameObject>();  //moved to brush object!
         private Vector2 scrollViewScrollPosition = new Vector2();
         private BrushObject copy = null;
 
@@ -98,8 +98,6 @@ namespace GameObjectBrush {
                     }
 
                 }
-
-                brushes = EditorGUILayout.ObjectField(brushes, typeof(Object), true) as BrushList;
 
                 if (currentBrushes != null && currentBrushes.Count > 0)
                 {
@@ -199,6 +197,10 @@ namespace GameObjectBrush {
 
                 #region Actions Group
                 //gui below the scroll view
+
+                //The active BrushList asset
+                brushes = EditorGUILayout.ObjectField(brushes, typeof(Object), true) as BrushList;
+
                 EditorGUILayout.BeginHorizontal();
 
                 GUI.backgroundColor = green;
@@ -241,21 +243,24 @@ namespace GameObjectBrush {
                 EditorGUILayout.EndHorizontal();
                 guiColorBGC = GUI.backgroundColor;
 
-
-                EditorGUI.BeginDisabledGroup(spawnedObjects.Count == 0);
-                GUI.backgroundColor = green;
-                if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore.")))
+                if (currentBrushes.Count>0)
                 {
-                    ApplyCachedObjects();
-                }
+                    EditorGUI.BeginDisabledGroup(selectedBrush.spawnedObjects.Count == 0);
+                
+                    GUI.backgroundColor = green;
+                    if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + selectedBrush.spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore.")))
+                    {
+                        ApplyCachedObjects();
+                    }
 
 
-                GUI.backgroundColor = red;
-                if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")))
-                {
-                    RemoveAllSpawnedObjects();
+                    GUI.backgroundColor = red;
+                    if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + selectedBrush.spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")))
+                    {
+                        RemoveAllSpawnedObjects();
+                    }
+                    EditorGUI.EndDisabledGroup();
                 }
-                EditorGUI.EndDisabledGroup();
 
 
 
@@ -481,7 +486,7 @@ namespace GameObjectBrush {
                         {
 
                             //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
-                            if (spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision)
+                            if (selectedBrush.spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision)
                             {
                                 continue;
                             }
@@ -555,7 +560,7 @@ namespace GameObjectBrush {
                             obj.transform.localScale = new Vector3(scale, scale, scale);
 
                             //Add object to list so it can be removed later on
-                            spawnedObjects.Add(obj);
+                            selectedBrush.spawnedObjects.Add(obj);
                         }
                     }
                 }
@@ -588,7 +593,7 @@ namespace GameObjectBrush {
                 {
 
                     //loop over all spawned objects to find objects thar can be removed
-                    foreach (GameObject obj in spawnedObjects)
+                    foreach (GameObject obj in selectedBrush.spawnedObjects)
                     {
                         if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize)
                         {
@@ -599,7 +604,7 @@ namespace GameObjectBrush {
                     //delete the before found objects
                     foreach (GameObject obj in objsToRemove)
                     {
-                        spawnedObjects.Remove(obj);
+                        selectedBrush.spawnedObjects.Remove(obj);
                         DestroyImmediate(obj);
                         hasRemovedSomething = true;
                     }
@@ -615,18 +620,18 @@ namespace GameObjectBrush {
         /// </summary>
         private void ApplyCachedObjects()
         {
-            spawnedObjects = new List<GameObject>();
+            selectedBrush.spawnedObjects = new List<GameObject>();
         }
         /// <summary>
         /// Removes all spawned gameobjects that can be modified by the brush
         /// </summary>
         private void RemoveAllSpawnedObjects()
         {
-            foreach (GameObject obj in spawnedObjects)
+            foreach (GameObject obj in selectedBrush.spawnedObjects)
             {
                 DestroyImmediate(obj);
             }
-            spawnedObjects.Clear();
+            selectedBrush.spawnedObjects.Clear();
         }
 
         /// <summary>
