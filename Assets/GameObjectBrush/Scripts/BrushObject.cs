@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System;
 
 namespace GameObjectBrush
 {
@@ -27,9 +28,6 @@ namespace GameObjectBrush
         [Range(0, 10)] public float maxScale = 1.5f;
         [Tooltip("The offset applied to the pivot of the brushObject. This is usefull if you find that the placed GameObjects are floating/sticking in the ground too much.")] public Vector3 offsetFromPivot = Vector3.zero;
         [Tooltip("The offset applied to the rotation of the brushObject.")] public Vector3 rotOffsetFromPivot = Vector3.zero;
-
-        [HideInInspector]
-        public List<GameObject> spawnedObjects = new List<GameObject>();
 
         /* filters */
         [Range(0, 360)] public float minSlope = 0f;
