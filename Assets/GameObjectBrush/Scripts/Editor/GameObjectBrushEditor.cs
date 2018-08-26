@@ -15,7 +15,7 @@ namespace GameObjectBrush {
         #region Properties
 
         //version variable
-        private static string version = "v3.1";
+        private static string version = "v3.2";
 
         //colors
         public static Color red = ColorFromRGB( 239, 80, 80);
