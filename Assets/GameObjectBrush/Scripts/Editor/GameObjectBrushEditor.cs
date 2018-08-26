@@ -43,19 +43,19 @@ namespace GameObjectBrush {
 
         #endregion
 
+        #region Editor Window Functionality
+
 
         /// <summary>
         /// Method that creates the window initially
         /// </summary>
         [MenuItem("Tools/GameObject Brush")]
-        public static void ShowWindow()
-        {
+        public static void ShowWindow() {
             //Show existing window instance. If one doesn't exist, make one.
             DontDestroyOnLoad(EditorWindow.GetWindow<GameObjectBrushEditor>("GO Brush " + version));
         }
 
-        void OnEnable()
-        {
+        void OnEnable() {
             //Get last used brush collection
             KeyValuePair<int, BrushCollection> lastUsedBCollInfo = BrushCollection.GetLastUsedBrushCollection();
             selectedBrushCollectionIndex = lastUsedBCollInfo.Key;
@@ -72,11 +72,9 @@ namespace GameObjectBrush {
             }
             SceneView.onSceneGUIDelegate -= OnSceneGUI;
         }
-        void OnGUI()
-        {
-            
-            if (!Application.isPlaying)
-            {
+        void OnGUI() {
+
+            if (!Application.isPlaying) {
                 SerializedObject serializedObject_brushObject = null;
                 int prevSelectedBrushCollectionIndex = selectedBrushCollectionIndex;
                 if (brushes != null) {
@@ -94,6 +92,9 @@ namespace GameObjectBrush {
                 if (prevSelectedBrushCollectionIndex != selectedBrushCollectionIndex) {                                                     //select only when brush collection changed
                     brushes = brushCollectionList.brushCollections[selectedBrushCollectionIndex];
                     brushes.SetLastUsedBrushCollection();
+                }
+                if (GUILayout.Button("+")) {
+                    StringPopupWindow.Init(this, BrushCollection.CreateInstance, BrushCollection.newBrushCollectionName, "Create new BrushCollection", "Asset Name");
                 }
                 EditorGUILayout.EndHorizontal();
 
@@ -113,8 +114,12 @@ namespace GameObjectBrush {
                     maxRowLength = 1;
                 }
 
-                foreach (BrushObject brObj in brushes.brushes)
-                {
+                foreach (BrushObject brObj in brushes.brushes) {
+                    //check if brushObject is null, if so skip this brush
+                    if (brObj == null || brObj.brushObject == null) {
+                        continue;
+                    }
+
                     //check if row is longer than max row length
                     if (rowLength > maxRowLength) {
                         rowLength = 1;
@@ -127,32 +132,25 @@ namespace GameObjectBrush {
 
                     //change color
                     Color guiColor = GUI.backgroundColor;
-                    if (brushes.selectedBrushes.Contains(brObj))
-                    {
+                    if (brushes.selectedBrushes.Contains(brObj)) {
                         GUI.backgroundColor = SelectedColor;
-                        if (brushes.primarySelectedBrush == brObj)
-                        {
+                        if (brushes.primarySelectedBrush == brObj) {
                             GUI.backgroundColor = PrimarySelectedColor;
                         }
                     }
 
                     //Create the brush entry in the scroll view and check if the user clicked on the created button (change the currently selected/edited brush accordingly and add it to the current brushes if possible)
                     GUIContent btnContent = new GUIContent(AssetPreview.GetAssetPreview(brObj.brushObject), brObj.brushObject.name);
-                    if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100)))
-                    {
+                    if (GUILayout.Button(btnContent, GUILayout.Width(100), GUILayout.Height(100))) {
                         //Add and remove brushes from the current brushes list
-                        if (Event.current.control && !brushes.selectedBrushes.Contains(brObj))
-                        {
+                        if (Event.current.control && !brushes.selectedBrushes.Contains(brObj)) {
                             brushes.selectedBrushes.Add(brObj);
-                        }
-                        else if (brushes.selectedBrushes.Contains(brObj))
-                        {
+                        } else if (brushes.selectedBrushes.Contains(brObj)) {
                             brushes.selectedBrushes.Remove(brObj);
                         }
 
                         //select the currently edited brush and deselect all selected brushes
-                        if (!Event.current.control)
-                        {
+                        if (!Event.current.control) {
                             brushes.selectedBrushes.Clear();
                             brushes.primarySelectedBrush = brObj;
                             brushes.selectedBrushes.Add(brObj);
@@ -174,8 +172,7 @@ namespace GameObjectBrush {
                 }
 
                 //add button
-                if (GUILayout.Button("+", GUILayout.Width(100), GUILayout.Height(100)))
-                {
+                if (GUILayout.Button("+", GUILayout.Width(100), GUILayout.Height(100))) {
                     AddObjectPopup.Init(brushes.brushes, this);
                 }
                 Color guiColorBGC = GUI.backgroundColor;
@@ -186,26 +183,22 @@ namespace GameObjectBrush {
 
                 #endregion
 
-                #region Actions Group           //gui below the scroll view
+                #region Actions Group
 
 
                 EditorGUILayout.BeginHorizontal();
 
                 GUI.backgroundColor = green;
-                if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection.")))
-                {
+                if (GUILayout.Button(new GUIContent("Add Brush", "Add a new brush to the selection."))) {
                     AddObjectPopup.Init(brushes.brushes, this);
                 }
 
                 EditorGUI.BeginDisabledGroup(brushes.selectedBrushes.Count == 0 || brushes.primarySelectedBrush == null);
                 GUI.backgroundColor = red;
                 //remove selected brushes button
-                if (GUILayout.Button(new GUIContent("Remove Current Brush(es)", "Removes the currently selected brush.")))
-                {
-                    if (brushes.selectedBrushes != null)
-                    {
-                        foreach (BrushObject brush in brushes.selectedBrushes)
-                        {
+                if (GUILayout.Button(new GUIContent("Remove Current Brush(es)", "Removes the currently selected brush."))) {
+                    if (brushes.selectedBrushes != null) {
+                        foreach (BrushObject brush in brushes.selectedBrushes) {
                             brushes.brushes.Remove(brush);
                         }
                         brushes.selectedBrushes = new List<BrushObject>();
@@ -214,7 +207,7 @@ namespace GameObjectBrush {
                 EditorGUI.EndDisabledGroup();
                 //remove all brushes button
                 EditorGUI.BeginDisabledGroup(brushes.brushes.Count == 0);
-                if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes."))) {
+                if (GUILayout.Button(new GUIContent("Clear Brushes", "Removes all brushes.")) && RemoveAllBrushes_Dialog(brushes.brushes.Count)) {
                     brushes.RemoveAllBrushes();
                     copy = null;
                 }
@@ -231,10 +224,9 @@ namespace GameObjectBrush {
                 EditorGUILayout.EndHorizontal();
                 guiColorBGC = GUI.backgroundColor;
 
-                if (brushes.selectedBrushes.Count > 0)
-                {
+                if (brushes.selectedBrushes.Count > 0) {
                     EditorGUI.BeginDisabledGroup(brushes.spawnedObjects.Count == 0);
-                
+
                     GUI.backgroundColor = green;
                     if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + brushes.spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore."))) {
                         brushes.ApplyCachedObjects();
@@ -242,8 +234,7 @@ namespace GameObjectBrush {
 
 
                     GUI.backgroundColor = red;
-                    if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + brushes.spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")))
-                    {
+                    if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + brushes.spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")) && RemoveAllCachedObjects_Dialog(brushes.spawnedObjects.Count)) {
                         brushes.DeleteSpawnedObjects();
                     }
                     EditorGUI.EndDisabledGroup();
@@ -257,8 +248,7 @@ namespace GameObjectBrush {
 
                 #region Brush Details
                 //don't show the details of the current brush if we do not have selected a current brush
-                if (brushes.selectedBrushes != null && brushes.primarySelectedBrush != null && brushes.brushes.Count > 0 && brushes.selectedBrushes.Count > 0)
-                {
+                if (brushes.selectedBrushes != null && brushes.primarySelectedBrush != null && brushes.brushes.Count > 0 && brushes.selectedBrushes.Count > 0) {
                     EditorGUILayout.Space();
                     EditorGUILayout.Space();
                     EditorGUILayout.Space();
@@ -266,19 +256,16 @@ namespace GameObjectBrush {
                     EditorGUILayout.BeginHorizontal();
                     GUI.backgroundColor = yellow;
                     EditorGUILayout.LabelField("Brush Details" + " - (" + brushes.primarySelectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
-                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
                         copy = brushes.primarySelectedBrush;
                     }
                     EditorGUI.BeginDisabledGroup(copy == null);
-                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the details of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
                         brushes.primarySelectedBrush.PasteDetails(copy);
                     }
                     GUI.backgroundColor = guiColorBGC;
                     EditorGUI.EndDisabledGroup();
-                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush details."), GUILayout.MaxWidth(50))) {
                         brushes.primarySelectedBrush.ResetDetails();
                     }
                     EditorGUILayout.EndHorizontal();
@@ -315,19 +302,16 @@ namespace GameObjectBrush {
                     GUI.backgroundColor = yellow;
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Filters" + " - (" + brushes.primarySelectedBrush.brushObject.name + ")", EditorStyles.boldLabel);
-                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Copy", "Copies the brush."), GUILayout.MaxWidth(50))) {
                         copy = brushes.primarySelectedBrush;
                     }
                     EditorGUI.BeginDisabledGroup(copy == null);
-                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Paste", "Pastes the filters of the brush in the clipboard."), GUILayout.MaxWidth(50))) {
                         brushes.primarySelectedBrush.PasteFilters(copy);
                     }
                     EditorGUI.EndDisabledGroup();
                     GUI.backgroundColor = guiColorBGC;
-                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50)))
-                    {
+                    if (GUILayout.Button(new GUIContent("Reset", "Restores the defaults settings of the brush filters."), GUILayout.MaxWidth(50))) {
                         brushes.primarySelectedBrush.ResetFilters();
                     }
                     EditorGUILayout.EndHorizontal();
@@ -343,8 +327,7 @@ namespace GameObjectBrush {
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.PropertyField(serializedObject_brushObject.FindProperty("primarySelectedBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
-                    if (brushes.primarySelectedBrush.isTagFilteringEnabled)
-                    {
+                    if (brushes.primarySelectedBrush.isTagFilteringEnabled) {
                         brushes.primarySelectedBrush.tagFilter = EditorGUILayout.TagField(new GUIContent("Tag Filter", "Limits the painting to objects that have a specific tag on them."), brushes.primarySelectedBrush.tagFilter);
                     }
                     EditorGUILayout.EndHorizontal();
@@ -356,8 +339,7 @@ namespace GameObjectBrush {
                 }
 
                 //save AssetDatabase on any change
-                if (GUI.changed && brushes != null)
-                {
+                if (GUI.changed && brushes != null) {
                     brushes.Save();
                 }
                 #endregion
@@ -367,20 +349,17 @@ namespace GameObjectBrush {
         /// Delegate that handles Scene GUI events
         /// </summary>
         /// <param name="sceneView"></param>
-        void OnSceneGUI(SceneView sceneView)
-        {
+        void OnSceneGUI(SceneView sceneView) {
 
             //don't do anything if the gameobject brush window is not open
-            if (!IsOpen)
-            {
+            if (!IsOpen) {
                 return;
             }
 
             //Draw Brush in the scene view
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
             RaycastHit hit;
-            if (isPlacingEnabled && brushes.selectedBrushes != null && Physics.Raycast(ray, out hit))
-            {
+            if (isPlacingEnabled && brushes.selectedBrushes != null && Physics.Raycast(ray, out hit)) {
                 Color color = Color.cyan;
                 color.a = 0.25f;
                 Handles.color = color;
@@ -390,46 +369,78 @@ namespace GameObjectBrush {
             }
 
             //Check for the currently selected tool
-            if (Tools.current != Tool.View)
-            {
+            if (Tools.current != Tool.View) {
                 //check if the bursh is used
-                if (Event.current.rawType == EventType.MouseDown)
-                {
+                if (Event.current.rawType == EventType.MouseDown) {
                     //check used mouse button
-                    if (Event.current.button == 0 && PlaceObjects())
-                    {
+                    if (Event.current.button == 0 && PlaceObjects()) {
                         Event.current.Use();
                         GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
                     }
                     //check used mouse button
-                    if (Event.current.button == 1)
-                    {
-                        if (RemoveObjects())
-                        {
+                    if (Event.current.button == 1) {
+                        if (RemoveObjects()) {
                             Event.current.Use();
                         }
                     }
                 }
                 //check if the bursh is used
-                if (Event.current.rawType == EventType.MouseDrag)
-                {
+                if (Event.current.rawType == EventType.MouseDrag) {
                     //check used mouse button
-                    if (Event.current.button == 0 && PlaceObjects())
-                    {
+                    if (Event.current.button == 0 && PlaceObjects()) {
                         Event.current.Use();
                         GUIUtility.hotControl = GUIUtility.GetControlID(FocusType.Passive);
                     }
                     //check used mouse button
-                    if (Event.current.button == 1)
-                    {
-                        if (RemoveObjects())
-                        {
+                    if (Event.current.button == 1) {
+                        if (RemoveObjects()) {
                             Event.current.Use();
                         }
                     }
                 }
             }
         }
+
+
+        /// <summary>
+        /// Switches to the given brushCollection, to edit it. (now this collection it the currently displayed one in the editor window)
+        /// </summary>
+        /// <param name="collection"></param>
+        public static void SwitchToBrushCollection(BrushCollection collection) {
+            if (Instance != null) {
+                if (collection != null) {
+                    Instance.selectedBrushCollectionIndex = collection.GetIndex();
+                    Instance.brushes = collection;
+                }
+            }
+        }
+        /// <summary>
+        /// Creates a popup dialog to get the confirmation of the user that all brushes should be removed
+        /// </summary>
+        /// <param name="brushCount">How many brushes are going to be removed?</param>
+        /// <returns></returns>
+        bool RemoveAllBrushes_Dialog(int brushCount) {
+            return EditorUtility.DisplayDialog(
+                "Remove all Brushes?",
+                "Are you sure you want to remove all brushes (" + brushCount + ") from this brushcollection?",
+                "Remove all",
+                "Cancel");
+        }
+        /// <summary>
+        /// Creates a popup dialog to get the confirmation of the user that all placed objects should be removed
+        /// </summary>
+        /// <param name="count">How many objects are going to be removed?</param>
+        /// <returns></returns>
+        bool RemoveAllCachedObjects_Dialog(int count) {
+            return EditorUtility.DisplayDialog(
+                "Delete all cached GameObjects?",
+                "Are you sure you want to delete all cached  GameObjects (" + count + ") from the scene?",
+                "Delete all",
+                "Cancel");
+        }
+
+
+        #endregion
 
         #region GO Brush functionality methods
 
@@ -438,32 +449,26 @@ namespace GameObjectBrush {
         /// Places the objects
         /// returns true if objects were placed, false otherwise
         /// </summary>
-        private bool PlaceObjects()
-        {
+        private bool PlaceObjects() {
             //only paint if painting is ebanled
-            if (!isPlacingEnabled)
-            {
+            if (!isPlacingEnabled) {
                 return false;
             }
 
             bool hasPlacedObjects = false;
 
-            foreach (BrushObject brush in brushes.selectedBrushes)
-            {
+            foreach (BrushObject brush in brushes.selectedBrushes) {
 
                 //loop as long as we have not reached the max ammount of objects to spawn per call/brush usage (calculated by currentBrush.density * currentBrush.brushSize)
                 int spawnCount = Mathf.RoundToInt(brush.density * brush.brushSize);
-                if (spawnCount < 1)
-                {
+                if (spawnCount < 1) {
                     spawnCount = 1;
                 }
 
-                for (int i = 0; i < spawnCount; i++)
-                {
+                for (int i = 0; i < spawnCount; i++) {
 
                     //create gameobjects of the given type if possible
-                    if (brush.brushObject != null && IsOpen)
-                    {
+                    if (brush.brushObject != null && IsOpen) {
 
                         //raycast from the scene camera to find the position of the brush and create objects there
                         Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
@@ -471,31 +476,26 @@ namespace GameObjectBrush {
                         Vector3 startPoint = ray.origin;
                         RaycastHit hit;
 
-                        if (Physics.Raycast(ray, out hit))
-                        {
+                        if (Physics.Raycast(ray, out hit)) {
 
                             //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
-                            if (brushes.spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision)
-                            {
+                            if (brushes.spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision) {
                                 continue;
                             }
 
                             //calculate the angle and abort if it is not in the specified range/filter
                             float angle = Vector3.Angle(Vector3.up, hit.normal);
-                            if (angle < brush.minSlope || angle > brush.maxSlope)
-                            {
+                            if (angle < brush.minSlope || angle > brush.maxSlope) {
                                 continue;
                             }
 
                             //check if the layer of the hit object is in our layermask filter
-                            if (brush.layerFilter != (brush.layerFilter | (1 << hit.transform.gameObject.layer)))
-                            {
+                            if (brush.layerFilter != (brush.layerFilter | (1 << hit.transform.gameObject.layer))) {
                                 continue;
                             }
 
                             //check if tag filtering is active, if so check the tags
-                            if (brush.isTagFilteringEnabled && hit.transform.tag != brush.tagFilter)
-                            {
+                            if (brush.isTagFilteringEnabled && hit.transform.tag != brush.tagFilter) {
                                 continue;
                             }
 
@@ -504,20 +504,16 @@ namespace GameObjectBrush {
 
                             //instantiate prefab or clone object
                             GameObject obj;
-                            if (brush.brushObject.gameObject.scene.name != null)
-                            {
+                            if (brush.brushObject.gameObject.scene.name != null) {
                                 obj = Instantiate(brush.brushObject, position, Quaternion.identity);
-                            }
-                            else
-                            {
+                            } else {
                                 obj = PrefabUtility.InstantiatePrefab(brush.brushObject) as GameObject;
                                 obj.transform.position = position;
                                 obj.transform.rotation = Quaternion.identity;
                             }
 
                             //check for parent container
-                            if (brush.parentContainer != null)
-                            {
+                            if (brush.parentContainer != null) {
                                 obj.transform.parent = brush.parentContainer;
                             }
 
@@ -527,8 +523,7 @@ namespace GameObjectBrush {
                             Undo.RegisterCreatedObjectUndo(obj, "Created " + obj.name + " with brush");
 
                             //check if we should align the object to the surface we are "painting" on
-                            if (brush.alignToSurface)
-                            {
+                            if (brush.alignToSurface) {
                                 obj.transform.up = hit.normal;
                             }
 
@@ -561,38 +556,31 @@ namespace GameObjectBrush {
         /// remove objects that are in the brush radius around the brush.
         /// It returns true if it removed something, false otherwise
         /// </summary>
-        private bool RemoveObjects()
-        {
+        private bool RemoveObjects() {
 
             //return if erasing is disabled
-            if (!isErasingEnabled)
-            {
+            if (!isErasingEnabled) {
                 return false;
             }
 
             bool hasRemovedSomething = false;
 
-            foreach (BrushObject brush in brushes.selectedBrushes)
-            {
+            foreach (BrushObject brush in brushes.selectedBrushes) {
                 //raycast to fin brush position
                 RaycastHit hit;
                 Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
                 List<GameObject> objsToRemove = new List<GameObject>();
-                if (Physics.Raycast(ray, out hit))
-                {
+                if (Physics.Raycast(ray, out hit)) {
 
                     //loop over all spawned objects to find objects thar can be removed
-                    foreach (GameObject obj in brushes.spawnedObjects)
-                    {
-                        if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize)
-                        {
+                    foreach (GameObject obj in brushes.spawnedObjects) {
+                        if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize) {
                             objsToRemove.Add(obj);
                         }
                     }
 
                     //delete the before found objects
-                    foreach (GameObject obj in objsToRemove)
-                    {
+                    foreach (GameObject obj in objsToRemove) {
                         brushes.spawnedObjects.Remove(obj);
                         DestroyImmediate(obj);
                         hasRemovedSomething = true;
@@ -607,7 +595,7 @@ namespace GameObjectBrush {
 
         #endregion
 
-        #region Misc
+        #region Utility
 
 
         /// <summary>
@@ -619,39 +607,6 @@ namespace GameObjectBrush {
         /// <returns></returns>
         public static Color ColorFromRGB(int r, int g, int b) {
             return new Color((float)r / 256, (float)g / 256, (float)b / 256);
-        }
-
-        /// <summary>
-        /// Creates a new BrushList.asset and links to it.
-        /// </summary>
-        void CreateNewBrushList()
-        {
-            brushes = CreateBrushList.Create();
-            if (brushes)
-            {
-                brushes.brushes = new List<BrushObject>();
-                string relPath = AssetDatabase.GetAssetPath(brushes);
-                //EditorPrefs.SetString(BrushCollection.lastBrushCollection_EditPrefsKey, brushes.GetGUID());
-            }
-        }
-
-        /// <summary>
-        /// Opens a system window dialog to choose a BrushList.assset
-        /// </summary>
-        void OpenBrushList()
-        {
-            string absPath = EditorUtility.OpenFilePanel("Select Brush List", "", "");
-            if (absPath.StartsWith(Application.dataPath))
-            {
-                string relPath = absPath.Substring(Application.dataPath.Length - "Assets".Length);
-                brushes = AssetDatabase.LoadAssetAtPath(relPath, typeof(BrushCollection)) as BrushCollection;
-                if (brushes.brushes == null)
-                    brushes.brushes = new List<BrushObject>();
-                if (brushes)
-                {
-                    //EditorPrefs.SetString(BrushCollection.lastBrushCollection_EditPrefsKey, brushes.GetGUID());
-                }
-            }
         }
 
 

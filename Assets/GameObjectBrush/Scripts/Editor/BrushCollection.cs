@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace GameObjectBrush
 {
+    [CreateAssetMenu(fileName = "New BrushCollection", menuName = "Tools/Gameobject Brush/Create BrushCollection")]
     public class BrushCollection : ScriptableObject
     {
 
@@ -25,13 +26,14 @@ namespace GameObjectBrush
             }
         }
 
-        public BrushObject primarySelectedBrush = null;                             //The currently selected/viewes brush (has to be public in order to be accessed by the FindProperty method)
-        public List<BrushObject> selectedBrushes = new List<BrushObject>();         //all other selected brushes
+        [HideInInspector] public BrushObject primarySelectedBrush = null;                             //The currently selected/viewes brush (has to be public in order to be accessed by the FindProperty method)
+        [HideInInspector] public List<BrushObject> selectedBrushes = new List<BrushObject>();         //all other selected brushes
 
         [HideInInspector, NonSerialized] public List<GameObject> spawnedObjects = new List<GameObject>();
 
         protected static string lastBrushCollection_EditPrefsKey = "GOB_LastUsedBrushCollection";
         public static string defaultBrushCollectionName = "Default Brush Collection";
+        public static string newBrushCollectionName = "New Brush Collection";
 
         /// <summary>
         /// Applies the spawned/cached objects of this brush collection
@@ -126,12 +128,19 @@ namespace GameObjectBrush
         }
 
         /// <summary>
+        /// Checks if a .asses with the same name already ecists in the default brush collection dir
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static bool CheckIfBrushCollectionAlreadyExists(string name) {
+            string path = GetDefaultBrushCollectionDir() + name + ".asset";
+            return AssetDatabase.AssetPathToGUID(path) != "";
+        }
+        /// <summary>
         /// Returnes the last used brush collection, if none it returns a new one
         /// </summary>
         /// <returns></returns>
         public static KeyValuePair<int, BrushCollection> GetLastUsedBrushCollection() {
-            KeyValuePair<int, BrushCollection> ret = new KeyValuePair<int, BrushCollection>();
-
 
             //try to find the last used brush collection and return it
             if (EditorPrefs.HasKey(lastBrushCollection_EditPrefsKey)) {
@@ -156,17 +165,19 @@ namespace GameObjectBrush
         public static string GetDefaultBrushCollectionDir() {
 
             //Find parent dir of the GameObjectBrush extension
+            string relPathToScript = "Scripts\\Editor\\" + GetClassName();
             string absPath = Directory.GetFiles(Application.dataPath, GetClassName(), SearchOption.AllDirectories)[0];
             string relPath = "Assets" + absPath.Substring(Application.dataPath.Length);
             relPath = relPath.Replace("Scripts" + Path.DirectorySeparatorChar + GetClassName(), "");
-            relPath = relPath.Remove(relPath.Length - 1);           //remove trailing DirectorySeperatorChar
+            relPath = relPath.Remove(relPath.Length - relPathToScript.Length);           //remove path that points to this script from the GameObjectBrush Folder
 
             //create DIR if not found
-            if (!AssetDatabase.IsValidFolder(relPath + Path.DirectorySeparatorChar + "Brushes")) {
-                string path = AssetDatabase.CreateFolder(relPath.Remove(relPath.Length - 1), "Brushes");
+            string dirPath = relPath + "Brushes";
+            if (!AssetDatabase.IsValidFolder(dirPath)) {
+                string path = AssetDatabase.CreateFolder(dirPath, "Brushes");
                 AssetDatabase.SaveAssets();
             }
-            relPath += Path.DirectorySeparatorChar + "Brushes" + Path.DirectorySeparatorChar;
+            relPath += "Brushes" + Path.DirectorySeparatorChar;
             return relPath;
         }
         /// <summary>
@@ -201,6 +212,9 @@ namespace GameObjectBrush
             //update last used one to be this collection (this is done to save this collection as the currently open one)
             collection.SetLastUsedBrushCollection();
 
+            //switch to newly created brush collection
+            GameObjectBrushEditor.SwitchToBrushCollection(collection);
+
             return collection;
         }
         /// <summary>
@@ -215,13 +229,13 @@ namespace GameObjectBrush
 
 
         public struct BrushCollectionList {
-            public BrushCollection[] brushCollections;
+            public List<BrushCollection> brushCollections;
 
             public BrushCollectionList(string[] guids) {
-                this.brushCollections = new BrushCollection[guids.Length];
+                brushCollections = new List<BrushCollection>();
                 for (int i = 0; i < guids.Length; i++) {
                     string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-                    brushCollections[i] = AssetDatabase.LoadAssetAtPath<BrushCollection>(path);
+                    brushCollections.Add(AssetDatabase.LoadAssetAtPath<BrushCollection>(path));
                 }
             }
 
@@ -231,11 +245,15 @@ namespace GameObjectBrush
             /// </summary>
             /// <returns></returns>
             public string[] GetNameList() {
-                string[] names = new string[brushCollections.Length];
-                for(int i = 0; i < brushCollections.Length; i++) {
-                    names[i] = brushCollections[i].name;
+                List<string> names = new List<string>();
+                for(int i = 0; i < brushCollections.Count; i++) {
+                    if (brushCollections[i] != null) {
+                        names.Add(brushCollections[i].name);
+                    } else {
+                        brushCollections.Remove(brushCollections[i]);
+                    }
                 }
-                return names;
+                return names.ToArray();
             }
         }
     }
