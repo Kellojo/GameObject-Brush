@@ -50,6 +50,7 @@ namespace GameObjectBrush
         {
             if (brush != null)
             {
+                parentContainer = brush.parentContainer;
                 allowIntercollision = brush.allowIntercollision;
                 alignToSurface = brush.alignToSurface;
                 randomizeXRotation = brush.randomizeXRotation;
@@ -94,6 +95,7 @@ namespace GameObjectBrush
         /// </summary>
         public void ResetDetails()
         {
+            parentContainer = null;
             allowIntercollision = false;
             alignToSurface = false;
             randomizeXRotation = false;

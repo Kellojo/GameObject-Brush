@@ -572,7 +572,7 @@ namespace GameObjectBrush {
                 List<GameObject> objsToRemove = new List<GameObject>();
                 if (Physics.Raycast(ray, out hit)) {
 
-                    //loop over all spawned objects to find objects thar can be removed
+                    //loop over all spawned objects to find objects that can be removed
                     foreach (GameObject obj in brushes.spawnedObjects) {
                         if (obj != null && Vector3.Distance(obj.transform.position, hit.point) < brush.brushSize) {
                             objsToRemove.Add(obj);
