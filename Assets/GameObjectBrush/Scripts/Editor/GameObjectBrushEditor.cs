@@ -323,10 +323,11 @@ namespace GameObjectBrush {
                     brushes.primarySelectedBrush.maxSlope = EditorGUILayout.FloatField(brushes.primarySelectedBrush.maxSlope);
                     EditorGUILayout.EndHorizontal();
 
-                    EditorGUILayout.PropertyField(serializedObject_brushObject.FindProperty("primarySelectedBrush").FindPropertyRelative("layerFilter"), true);
+                    SerializedProperty sp = serializedObject_brushObject.FindProperty("primarySelectedBrush").FindPropertyRelative("layerFilter");
+                    Debug.Log(EditorGUILayout.PropertyField(sp));
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PropertyField(serializedObject_brushObject.FindProperty("primarySelectedBrush").FindPropertyRelative("isTagFilteringEnabled"), true);
+                    brushes.primarySelectedBrush.isTagFilteringEnabled = EditorGUILayout.Toggle("Enable Tag Filtering", brushes.primarySelectedBrush.isTagFilteringEnabled);
                     if (brushes.primarySelectedBrush.isTagFilteringEnabled) {
                         brushes.primarySelectedBrush.tagFilter = EditorGUILayout.TagField(new GUIContent("Tag Filter", "Limits the painting to objects that have a specific tag on them."), brushes.primarySelectedBrush.tagFilter);
                     }
@@ -544,7 +545,7 @@ namespace GameObjectBrush {
                             obj.transform.localScale = new Vector3(scale, scale, scale);
 
                             //Add object to list so it can be removed later on
-                            brushes.spawnedObjects.Add(obj);
+                            brushes.spawnedObjects.AddRange(GetAllChildren(obj));
                         }
                     }
                 }
@@ -607,6 +608,23 @@ namespace GameObjectBrush {
         /// <returns></returns>
         public static Color ColorFromRGB(int r, int g, int b) {
             return new Color((float)r / 256, (float)g / 256, (float)b / 256);
+        }
+
+        /// <summary>
+        /// Get all child game objects parrented to this one.
+        /// Includes the object itself
+        /// </summary>
+        /// <param name="obj">The object to look for child objects</param>
+        /// <returns></returns>
+        public static GameObject[] GetAllChildren(GameObject obj) {
+            List<GameObject> children = new List<GameObject>();
+            if (obj != null) {
+                foreach(Transform child in obj.transform) {
+                    children.Add(child.gameObject);
+                }
+            }
+            children.Add(obj);
+            return children.ToArray();
         }
 
 
