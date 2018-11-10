@@ -41,6 +41,8 @@ namespace GameObjectBrush {
         private bool isErasingEnabled = true;
         private bool isPlacingEnabled = true;
 
+        private Dictionary<GameObject, Vector3> lastPlacementPositions = new Dictionary<GameObject, Vector3>();
+
         #endregion
 
         #region Editor Window Functionality
@@ -230,12 +232,14 @@ namespace GameObjectBrush {
                     GUI.backgroundColor = green;
                     if (GUILayout.Button(new GUIContent("Permanently Apply Spawned GameObjects (" + brushes.spawnedObjects.Count + ")", "Permanently apply the gameobjects that have been spawned with GO brush, so they can not be erased by accident anymore."))) {
                         brushes.ApplyCachedObjects();
+                        lastPlacementPositions.Clear();
                     }
 
 
                     GUI.backgroundColor = red;
                     if (GUILayout.Button(new GUIContent("Remove All Spawned GameObjects (" + brushes.spawnedObjects.Count + ")", "Removes all spawned objects from the scene that have not been applied before.")) && RemoveAllCachedObjects_Dialog(brushes.spawnedObjects.Count)) {
                         brushes.DeleteSpawnedObjects();
+                        lastPlacementPositions.Clear();
                     }
                     EditorGUI.EndDisabledGroup();
                 }
@@ -284,13 +288,13 @@ namespace GameObjectBrush {
                     brushes.primarySelectedBrush.maxScale = EditorGUILayout.FloatField(brushes.primarySelectedBrush.maxScale);
                     EditorGUILayout.EndHorizontal();
 
-                    brushes.primarySelectedBrush.alignToSurface = EditorGUILayout.Toggle(new GUIContent("Align to Surface", "This option allows you to align the instantiated gameobjects to the surface you are painting on."), brushes.primarySelectedBrush.alignToSurface);
-
                     EditorGUILayout.BeginHorizontal();
                     brushes.primarySelectedBrush.randomizeXRotation = EditorGUILayout.Toggle(new GUIContent("Randomize X Rotation", "Should the rotation be randomized on the x axis?"), brushes.primarySelectedBrush.randomizeXRotation);
                     brushes.primarySelectedBrush.randomizeYRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Y Rotation", "Should the rotation be randomized on the y axis?"), brushes.primarySelectedBrush.randomizeYRotation);
                     brushes.primarySelectedBrush.randomizeZRotation = EditorGUILayout.Toggle(new GUIContent("Randomize Z Rotation", "Should the rotation be randomized on the z axis?"), brushes.primarySelectedBrush.randomizeZRotation);
                     EditorGUILayout.EndHorizontal();
+
+                    brushes.primarySelectedBrush.alignToSurface = EditorGUILayout.Toggle(new GUIContent("Align to Surface", "This option allows you to align the instantiated gameobjects to the surface you are painting on."), brushes.primarySelectedBrush.alignToSurface);
 
                     brushes.primarySelectedBrush.allowIntercollision = EditorGUILayout.Toggle(new GUIContent("Allow Intercollision", "Should the spawned objects be considered for the spawning of new objects? If so, newly spawned objects can be placed on top of previously (not yet applied) objects."), brushes.primarySelectedBrush.allowIntercollision);
 
@@ -324,7 +328,6 @@ namespace GameObjectBrush {
                     EditorGUILayout.EndHorizontal();
 
                     SerializedProperty sp = serializedObject_brushObject.FindProperty("primarySelectedBrush").FindPropertyRelative("layerFilter");
-                    Debug.Log(EditorGUILayout.PropertyField(sp));
 
                     EditorGUILayout.BeginHorizontal();
                     brushes.primarySelectedBrush.isTagFilteringEnabled = EditorGUILayout.Toggle("Enable Tag Filtering", brushes.primarySelectedBrush.isTagFilteringEnabled);
@@ -451,6 +454,9 @@ namespace GameObjectBrush {
         /// returns true if objects were placed, false otherwise
         /// </summary>
         private bool PlaceObjects() {
+            Debug.Log(lastPlacementPositions.Count);
+
+
             //only paint if painting is ebanled
             if (!isPlacingEnabled) {
                 return false;
@@ -478,6 +484,12 @@ namespace GameObjectBrush {
                         RaycastHit hit;
 
                         if (Physics.Raycast(ray, out hit)) {
+
+                            //return if we are too close to the previous placement position
+                            if (arePositionsWithinRange(lastPlacementPositions, hit.point, brush.brushSize, brush.density)) {
+                                continue;
+                            }
+
 
                             //return if we are hitting an object that we have just spawned or don't if allowIntercollisionPlacement is enabled on the current brush
                             if (brushes.spawnedObjects.Contains(hit.collider.gameObject) && !brush.allowIntercollision) {
@@ -546,6 +558,9 @@ namespace GameObjectBrush {
 
                             //Add object to list so it can be removed later on
                             brushes.spawnedObjects.AddRange(GetAllChildren(obj));
+
+                            //save placement position
+                            lastPlacementPositions.Add(obj, hit.point);
                         }
                     }
                 }
@@ -583,6 +598,9 @@ namespace GameObjectBrush {
                     //delete the before found objects
                     foreach (GameObject obj in objsToRemove) {
                         brushes.spawnedObjects.Remove(obj);
+                        if (lastPlacementPositions.ContainsKey(obj))
+                            lastPlacementPositions.Remove(obj);
+                   
                         DestroyImmediate(obj);
                         hasRemovedSomething = true;
                     }
@@ -627,6 +645,24 @@ namespace GameObjectBrush {
             return children.ToArray();
         }
 
+        /// <summary>
+        /// Checks if any of the provided positions is in range to a given point
+        /// </summary>
+        /// <param name="positions"></param>
+        /// <param name="point"></param>
+        /// <param name="range"></param>
+        /// <returns></returns>
+        public static bool arePositionsWithinRange(Dictionary<GameObject, Vector3> positions, Vector3 point, float range, float density) {
+            var values = positions.Values;
+            float adjustedRange = (float) range / density;
+            Debug.Log(range + " - " + adjustedRange);
+            foreach(Vector3 position in values) {
+                if (Vector3.Distance(position, point) <= adjustedRange) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         #endregion
     }

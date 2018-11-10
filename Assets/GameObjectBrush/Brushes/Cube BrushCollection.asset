@@ -21,7 +21,7 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 1
+    density: 4.77
     brushSize: 5
     minScale: 0.5
     maxScale: 1.5
@@ -43,7 +43,7 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 0.51
+    density: 1.68
     brushSize: 5
     minScale: 0.5
     maxScale: 1.5
@@ -87,7 +87,7 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 1
+    density: 5
     brushSize: 5
     minScale: 0.5
     maxScale: 1.5
@@ -123,7 +123,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   primarySelectedBrush:
-    brushObject: {fileID: 1150727637071104, guid: 8e8f44f656f071a4c8394af50bb5816f,
+    brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
       type: 2}
     usePrefabs: 1
     allowIntercollision: 0
@@ -132,7 +132,7 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 1
+    density: 4.77
     brushSize: 5
     minScale: 0.5
     maxScale: 1.5
@@ -144,9 +144,9 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     isTagFilteringEnabled: 0
-    tagFilter: 
+    tagFilter: Untagged
   selectedBrushes:
-  - brushObject: {fileID: 1150727637071104, guid: 8e8f44f656f071a4c8394af50bb5816f,
+  - brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
       type: 2}
     usePrefabs: 1
     allowIntercollision: 0
@@ -155,7 +155,7 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 1
+    density: 4.77
     brushSize: 5
     minScale: 0.5
     maxScale: 1.5
@@ -167,4 +167,4 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     isTagFilteringEnabled: 0
-    tagFilter: 
+    tagFilter: Untagged
