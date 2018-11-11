@@ -454,7 +454,6 @@ namespace GameObjectBrush {
         /// returns true if objects were placed, false otherwise
         /// </summary>
         private bool PlaceObjects() {
-            Debug.Log(lastPlacementPositions.Count);
 
 
             //only paint if painting is ebanled
@@ -655,7 +654,6 @@ namespace GameObjectBrush {
         public static bool arePositionsWithinRange(Dictionary<GameObject, Vector3> positions, Vector3 point, float range, float density) {
             var values = positions.Values;
             float adjustedRange = (float) range / density;
-            Debug.Log(range + " - " + adjustedRange);
             foreach(Vector3 position in values) {
                 if (Vector3.Distance(position, point) <= adjustedRange) {
                     return true;
