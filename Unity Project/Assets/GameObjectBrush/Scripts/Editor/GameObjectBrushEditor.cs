@@ -283,8 +283,7 @@ namespace GameObjectBrush {
 
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(new GUIContent("Min and Max Scale", "The min and max range of the spawned gameobject. If they are not the same value a random value in between the min and max is going to be picked."));
-                    EditorGUILayout.MinMaxSlider(ref brushes.primarySelectedBrush.minScale, ref brushes.primarySelectedBrush.maxScale, 0.001f, 50);
+                    EditorGUILayout.MinMaxSlider(new GUIContent("Min and Max Scale", "The min and max range of the spawned gameobject. If they are not the same value a random value in between the min and max is going to be picked."), ref brushes.primarySelectedBrush.minScale, ref brushes.primarySelectedBrush.maxScale, 0.001f, 50);
                     brushes.primarySelectedBrush.minScale = EditorGUILayout.FloatField(brushes.primarySelectedBrush.minScale);
                     brushes.primarySelectedBrush.maxScale = EditorGUILayout.FloatField(brushes.primarySelectedBrush.maxScale);
                     EditorGUILayout.EndHorizontal();
@@ -322,8 +321,7 @@ namespace GameObjectBrush {
                     EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(new GUIContent("Min and Max Slope", "The range of slope that is required for an object to be placed. If the slope is not in that range, no object is going to be placed."));
-                    EditorGUILayout.MinMaxSlider(ref brushes.primarySelectedBrush.minSlope, ref brushes.primarySelectedBrush.maxSlope, 0, 360);
+                    EditorGUILayout.MinMaxSlider(new GUIContent("Min and Max Slope", "The range of slope that is required for an object to be placed. If the slope is not in that range, no object is going to be placed."), ref brushes.primarySelectedBrush.minSlope, ref brushes.primarySelectedBrush.maxSlope, 0, 360);
                     brushes.primarySelectedBrush.minSlope = EditorGUILayout.FloatField(brushes.primarySelectedBrush.minSlope);
                     brushes.primarySelectedBrush.maxSlope = EditorGUILayout.FloatField(brushes.primarySelectedBrush.maxSlope);
                     EditorGUILayout.EndHorizontal();
