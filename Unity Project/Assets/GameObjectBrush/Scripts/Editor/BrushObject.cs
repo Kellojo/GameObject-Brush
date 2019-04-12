@@ -22,8 +22,8 @@ namespace GameObjectBrush
         [Tooltip("Should the rotation be randomized on the z axis?")] public bool randomizeZRotation = false;
 
         public Transform parentContainer;
-        [Range(0, 10)] public float density = 1f;
-        [Range(0, 100)] public float brushSize = 5f;
+        public float density = 1f;
+        public float brushSize = 5f;
         [Range(0, 10)] public float minScale = 0.5f;
         [Range(0, 10)] public float maxScale = 1.5f;
         [Tooltip("The offset applied to the pivot of the brushObject. This is usefull if you find that the placed GameObjects are floating/sticking in the ground too much.")] public Vector3 offsetFromPivot = Vector3.zero;

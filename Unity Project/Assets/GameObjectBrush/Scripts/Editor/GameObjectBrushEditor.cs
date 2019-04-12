@@ -276,8 +276,8 @@ namespace GameObjectBrush {
 
                     brushes.primarySelectedBrush.brushObject = EditorGUILayout.ObjectField("GameObject", brushes.primarySelectedBrush.brushObject, typeof(GameObject), true) as GameObject;
                     brushes.primarySelectedBrush.parentContainer = EditorGUILayout.ObjectField("Parent", brushes.primarySelectedBrush.parentContainer, typeof(Transform), true) as Transform;
-                    brushes.primarySelectedBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), brushes.primarySelectedBrush.density, 0f, 5f);
-                    brushes.primarySelectedBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), brushes.primarySelectedBrush.brushSize, 0f, 25f);
+                    brushes.primarySelectedBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), brushes.primarySelectedBrush.density, 0f, 30f);
+                    brushes.primarySelectedBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), brushes.primarySelectedBrush.brushSize, 0f, 50f);
                     brushes.primarySelectedBrush.offsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Offset from Pivot", "Changes the offset of the spawned gameobject from the calculated position. This allows you to correct the position of the spawned objects, if you find they are floating for example due to a not that correct pivot on the gameobject/prefab."), brushes.primarySelectedBrush.offsetFromPivot);
                     brushes.primarySelectedBrush.rotOffsetFromPivot = EditorGUILayout.Vector3Field(new GUIContent("Rotational Offset", "Changes the rotational offset that is applied to the prefab/gameobject when spawning it. This allows you to current the rotation of the spawned objects."), brushes.primarySelectedBrush.rotOffsetFromPivot);
 

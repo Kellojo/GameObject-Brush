@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -13,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _brushes:
   - brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
@@ -35,7 +36,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: Untagged
   - brushObject: {fileID: 1262246730603982, guid: d8d6ace14daff924c9a1b1b00b2cb388,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 1
@@ -57,7 +58,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   - brushObject: {fileID: 1977038927187086, guid: d93c5cd00d9a681419f02d26f0ec4438,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
@@ -79,7 +80,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   - brushObject: {fileID: 1498828383688690, guid: 604d716e625dab742ba84e2db380f476,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
@@ -101,7 +102,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   - brushObject: {fileID: 1150727637071104, guid: 8e8f44f656f071a4c8394af50bb5816f,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
@@ -124,7 +125,7 @@ MonoBehaviour:
     tagFilter: 
   primarySelectedBrush:
     brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
@@ -147,7 +148,7 @@ MonoBehaviour:
     tagFilter: Untagged
   selectedBrushes:
   - brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
-      type: 2}
+      type: 3}
     usePrefabs: 1
     allowIntercollision: 0
     alignToSurface: 0
