@@ -274,6 +274,7 @@ namespace GameObjectBrush {
                     }
                     EditorGUILayout.EndHorizontal();
 
+                    brushes.primarySelectedBrush.brushObject = EditorGUILayout.ObjectField("GameObject", brushes.primarySelectedBrush.brushObject, typeof(GameObject), true) as GameObject;
                     brushes.primarySelectedBrush.parentContainer = EditorGUILayout.ObjectField("Parent", brushes.primarySelectedBrush.parentContainer, typeof(Transform), true) as Transform;
                     brushes.primarySelectedBrush.density = EditorGUILayout.Slider(new GUIContent("Density", "Changes the density of the brush, i.e. how many gameobjects are spawned inside the radius of the brush."), brushes.primarySelectedBrush.density, 0f, 5f);
                     brushes.primarySelectedBrush.brushSize = EditorGUILayout.Slider(new GUIContent("Brush Size", "The radius of the brush."), brushes.primarySelectedBrush.brushSize, 0f, 25f);

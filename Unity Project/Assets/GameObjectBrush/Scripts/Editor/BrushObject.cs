@@ -12,7 +12,7 @@ namespace GameObjectBrush
     [System.Serializable]
     public class BrushObject
     {
-        public GameObject brushObject;
+        [Tooltip("The gameObject/prefab we want to paint with.")] public GameObject brushObject;
 
         [Tooltip("Use prefab instantiation instead of cloning.")] public bool usePrefabs = true;
         public bool allowIntercollision = false;
@@ -22,7 +22,7 @@ namespace GameObjectBrush
         [Tooltip("Should the rotation be randomized on the z axis?")] public bool randomizeZRotation = false;
 
         public Transform parentContainer;
-        [Range(0, 1)] public float density = 1f;
+        [Range(0, 10)] public float density = 1f;
         [Range(0, 100)] public float brushSize = 5f;
         [Range(0, 10)] public float minScale = 0.5f;
         [Range(0, 10)] public float maxScale = 1.5f;
