@@ -22,10 +22,10 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 4.77
+    density: 1
     brushSize: 5
-    minScale: 40
-    maxScale: 32
+    minScale: 0.5
+    maxScale: 1.5
     offsetFromPivot: {x: 0, y: 0, z: 0}
     rotOffsetFromPivot: {x: 0, y: 0, z: 0}
     minSlope: 0
@@ -128,15 +128,15 @@ MonoBehaviour:
       type: 3}
     usePrefabs: 1
     allowIntercollision: 0
-    alignToSurface: 1
+    alignToSurface: 0
     randomizeXRotation: 0
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 4.77
+    density: 1
     brushSize: 5
-    minScale: 0
-    maxScale: 0
+    minScale: 0.5
+    maxScale: 1.5
     offsetFromPivot: {x: 0, y: 0, z: 0}
     rotOffsetFromPivot: {x: 0, y: 0, z: 0}
     minSlope: 0
@@ -156,10 +156,10 @@ MonoBehaviour:
     randomizeYRotation: 1
     randomizeZRotation: 0
     parentContainer: {fileID: 0}
-    density: 4.77
+    density: 1
     brushSize: 5
-    minScale: 40
-    maxScale: 32
+    minScale: 0.5
+    maxScale: 1.5
     offsetFromPivot: {x: 0, y: 0, z: 0}
     rotOffsetFromPivot: {x: 0, y: 0, z: 0}
     minSlope: 0

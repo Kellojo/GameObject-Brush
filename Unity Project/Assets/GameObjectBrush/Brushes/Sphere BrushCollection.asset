@@ -102,7 +102,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   primarySelectedBrush:
-    brushObject: {fileID: 1642430599949142, guid: 9891a1e705ed7284d834797712cb3709,
+    brushObject: {fileID: 1642430599949142, guid: bdd5dcad4de836a419cf32db900a9fd3,
       type: 3}
     usePrefabs: 1
     allowIntercollision: 0
@@ -125,7 +125,7 @@ MonoBehaviour:
     isTagFilteringEnabled: 0
     tagFilter: 
   selectedBrushes:
-  - brushObject: {fileID: 1642430599949142, guid: 9891a1e705ed7284d834797712cb3709,
+  - brushObject: {fileID: 1642430599949142, guid: bdd5dcad4de836a419cf32db900a9fd3,
       type: 3}
     usePrefabs: 1
     allowIntercollision: 0
