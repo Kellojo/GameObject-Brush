@@ -46,6 +46,16 @@ namespace GameObjectBrush
         /// </summary>
         public void DeleteSpawnedObjects() {
             foreach (GameObject obj in spawnedObjects) {
+
+                //special handling for the new prefab workflow
+                if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj)) {
+                    UnityEditor.PrefabUtility.UnpackPrefabInstance(
+                        obj,
+                        UnityEditor.PrefabUnpackMode.Completely,
+                        UnityEditor.InteractionMode.AutomatedAction
+                    );
+                }
+
                 DestroyImmediate(obj);
             }
             spawnedObjects.Clear();
