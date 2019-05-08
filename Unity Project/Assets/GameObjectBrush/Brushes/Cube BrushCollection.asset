@@ -145,7 +145,7 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 4294967295
     isTagFilteringEnabled: 0
-    tagFilter: Untagged
+    tagFilter: 
   selectedBrushes:
   - brushObject: {fileID: 1868593281608016, guid: c83f2df945b803a47893cec80c2c3b2a,
       type: 3}
