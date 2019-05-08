@@ -46,6 +46,16 @@ namespace GameObjectBrush
         /// </summary>
         public void DeleteSpawnedObjects() {
             foreach (GameObject obj in spawnedObjects) {
+
+                //special handling for the new prefab workflow
+                if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(obj)) {
+                    UnityEditor.PrefabUtility.UnpackPrefabInstance(
+                        obj,
+                        UnityEditor.PrefabUnpackMode.Completely,
+                        UnityEditor.InteractionMode.AutomatedAction
+                    );
+                }
+
                 DestroyImmediate(obj);
             }
             spawnedObjects.Clear();
@@ -174,7 +184,7 @@ namespace GameObjectBrush
             //create DIR if not found
             string dirPath = relPath + "Brushes";
             if (!AssetDatabase.IsValidFolder(dirPath)) {
-                string path = AssetDatabase.CreateFolder(dirPath, "Brushes");
+                AssetDatabase.CreateFolder(dirPath, "Brushes");
                 AssetDatabase.SaveAssets();
             }
             relPath += "Brushes" + Path.DirectorySeparatorChar;
@@ -244,7 +254,7 @@ namespace GameObjectBrush
             /// Gets the name of each brush collection as an array
             /// </summary>
             /// <returns></returns>
-            public string[] GetNameList() {
+            public List<string> GetNameList() {
                 List<string> names = new List<string>();
                 for(int i = 0; i < brushCollections.Count; i++) {
                     if (brushCollections[i] != null) {
@@ -253,7 +263,7 @@ namespace GameObjectBrush
                         brushCollections.Remove(brushCollections[i]);
                     }
                 }
-                return names.ToArray();
+                return names;
             }
         }
     }
