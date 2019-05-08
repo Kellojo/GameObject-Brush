@@ -9,7 +9,7 @@ namespace GameObjectBrush {
     /// </summary>
     public class AddObjectPopup : EditorWindow {
 
-        private static string windowName = "Add brush";
+        private static string windowName = "Add new Brush";
 
         private GameObject obj2Add;
         public List<BrushObject> brushes;
@@ -38,9 +38,10 @@ namespace GameObjectBrush {
             float y = parent.position.y + (parent.position.height - 75) * 0.5f;
             instance.position = new Rect(x, y, 350, 75);
 
+            instance.titleContent = new GUIContent(windowName);
+
             //show window as "utility"
             instance.ShowUtility();
-            instance.name = windowName;
         }
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace GameObjectBrush {
         /// </summary>
         void OnGUI() {
             //create the "title" label
-            EditorGUILayout.LabelField("Add GameObject to Brushes", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Select a GameObject", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
             //create the object field for the gameobject

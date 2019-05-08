@@ -41,6 +41,8 @@ namespace GameObjectBrush {
             float y = parent.position.y + (parent.position.height - 75) * 0.5f;
             instance.position = new Rect(x, y, 350, 75);
 
+            instance.titleContent = new GUIContent(windowName);
+
             //show window as "utility"
             instance.ShowUtility();
         }
@@ -50,7 +52,7 @@ namespace GameObjectBrush {
         /// </summary>
         void OnGUI() {
             //create the "title" label
-            EditorGUILayout.LabelField("Add GameObject to Brushes", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Give your brushcollection a name", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
             //label field to indicare weather the brush collection already exists or not
