@@ -64,7 +64,11 @@ namespace GameObjectBrush {
             brushes = lastUsedBCollInfo.Value;
 
             //add thene delegate
+#if UNITY_2021_1_OR_NEWER
+            SceneView.duringSceneGui += OnSceneGUI;
+#else
             SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
             Instance = this;
             this.autoRepaintOnSceneChange = true;
         }
@@ -72,7 +76,12 @@ namespace GameObjectBrush {
             if (brushes != null) {
                 brushes.Save();
             }
+            //remove the delegate
+#if UNITY_2021_1_OR_NEWER
+            SceneView.duringSceneGui -= OnSceneGUI;
+#else
             SceneView.onSceneGUIDelegate -= OnSceneGUI;
+#endif
         }
         void OnGUI() {
 
@@ -403,6 +412,7 @@ namespace GameObjectBrush {
                     }
                 }
             }
+            sceneView.Repaint();
         }
 
 
