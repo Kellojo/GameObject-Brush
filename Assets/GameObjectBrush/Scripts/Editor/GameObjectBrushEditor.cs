@@ -64,7 +64,11 @@ namespace GameObjectBrush {
             brushes = lastUsedBCollInfo.Value;
 
             //add thene delegate
+#if UNITY_2021_1_OR_NEWER
+            SceneView.duringSceneGui += OnSceneGUI;
+#else
             SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
             Instance = this;
             this.autoRepaintOnSceneChange = true;
         }
@@ -72,7 +76,12 @@ namespace GameObjectBrush {
             if (brushes != null) {
                 brushes.Save();
             }
+            //remove the delegate
+#if UNITY_2021_1_OR_NEWER
+            SceneView.duringSceneGui -= OnSceneGUI;
+#else
             SceneView.onSceneGUIDelegate -= OnSceneGUI;
+#endif
         }
         void OnGUI() {
 
@@ -403,6 +412,7 @@ namespace GameObjectBrush {
                     }
                 }
             }
+            sceneView.Repaint();
         }
 
 
@@ -654,8 +664,10 @@ namespace GameObjectBrush {
         public static bool arePositionsWithinRange(Dictionary<GameObject, Vector3> positions, Vector3 point, float range, float density) {
             var values = positions.Values;
             float adjustedRange = (float) range / density;
-            foreach(Vector3 position in values) {
-                if (Vector3.Distance(position, point) <= adjustedRange) {
+            foreach(var kv in positions) {
+                var go = kv.Key;
+                var position = kv.Value;
+                if (go != null && Vector3.Distance(position, point) <= adjustedRange) {
                     return true;
                 }
             }
