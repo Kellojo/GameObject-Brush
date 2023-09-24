@@ -1,0 +1,22 @@
+{
+  "name": "com.kellojo.gameobjectbrush",
+  "version": "1.0.0",
+  "description": "A simple and completely free editor extension for the Unity game engine. It allows you to paint prefabs and gameobjects.",
+  "displayName": "GameObjectBrush",
+  "unity": "2018.3",
+  "author": {
+    "name": "Kellojo",
+    "url": "https://github.com/Kellojo"
+  },
+  "changelogUrl": "",
+  "dependencies": {},
+  "documentationUrl": "",
+  "hideInEditor": false,
+  "keywords": [
+    "GameObjectBrush"
+  ],
+  "license": "",
+  "licensesUrl": "",
+  "samples": [],
+  "unityRelease": "16f1"
+}
